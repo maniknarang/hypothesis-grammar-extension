@@ -1,3 +1,4 @@
+# maybe pass in the expansions dict so we can access it as a field of the nonterminal object?
 class Nonterminal:
     def __init__(self, nonterminal) -> None:
         self._nonterminal = nonterminal

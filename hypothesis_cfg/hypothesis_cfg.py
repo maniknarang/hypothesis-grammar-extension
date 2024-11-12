@@ -1,4 +1,4 @@
-from hypothesis.strategies import composite, builds
+from hypothesis.strategies import composite, builds, randoms
 
 from utils import Nonterminal, Terminal
 
@@ -120,7 +120,69 @@ def get_min_distances(
 
 
 @composite
-def cfg(draw, cfg_file_path: str = ""):
+def generate_string(
+    nonterminals: dict[str, Nonterminal],
+    expansions: dict[Nonterminal, list[list[Terminal | Nonterminal]]],
+    max_depth: int,
+) -> str:
+
+    start_symbol = nonterminals["S"]
+    current_depth = 0
+    # maybe use a custom parse tree class to make the expansions easier
+    current_string = [start_symbol]
+    next_nonterminal = start_symbol
+
+    print(f"expansions: {expansions}")
+    print(f"expansions: {expansions}")
+
+    while current_depth <= max_depth and next_nonterminal != [None]:
+        remaining_depth = max_depth - current_depth
+
+        potential_expansions = expansions[next_nonterminal]
+        valid_expansions = []
+        for expansion in potential_expansions:
+            part_depths = []
+            for part in expansion:
+                if isinstance(part, Nonterminal):
+                    part_depths.append(
+                        nonterminals[
+                            part.get_nonterminal()
+                        ].get_min_distance_to_terminal()
+                    )
+                else:
+                    part_depths.append(1)
+            expansion_depth = max(part_depths)
+
+            if expansion_depth <= remaining_depth:
+                valid_expansions.append(expansion)
+
+        print(f"valid_expansions: {valid_expansions}")
+        expansion = random.choice(valid_expansions)
+        print(f"chose: {expansion}")
+        for i, part in enumerate(expansion):
+            if isinstance(part, Nonterminal):
+                expansion[i] = nonterminals[part.get_nonterminal()]
+        print(f"current string: {current_string}, expansion: {expansion}")
+
+        current_string = (
+            current_string[: current_string.index(next_nonterminal)]
+            + expansion
+            + current_string[current_string.index(next_nonterminal) + 1 :]
+        )
+        print(f"current string: {current_string}")
+
+        current_depth += 1
+        # use default value of next_nonterminal=[None] to break loop if no nonterminal is found
+        next_nonterminal = next(
+            (part for part in current_string if isinstance(part, Nonterminal)), [None]
+        )
+        print(f"next_nonterminal: {next_nonterminal}")
+
+    return "".join([str(part) for part in current_string])
+
+
+@composite
+def cfg(draw, cfg_file_path: str = "", max_depth: int = None):
 
     # open file
     print(f"cfg_file_path: {cfg_file_path}")
@@ -141,10 +203,12 @@ def cfg(draw, cfg_file_path: str = ""):
         print(
             f"{nonterminal.get_nonterminal()} min_distance_to_terminal: {nonterminal.get_min_distance_to_terminal()}"
         )
+    # maybe want to warn if max_depth is too low or if theres any unreachable nonterminals?
 
     # generate random string from grammar w/ max depths
-    result = generate_string(nonterminals, expansions)
+    max_depth = max_depth if max_depth is not None else 10
+    result = generate_string(nonterminals, expansions, max_depth)
+    print(f"generated: {result}")
 
-    result = "1+1"
     print(f"returning: {result}")
     return result
