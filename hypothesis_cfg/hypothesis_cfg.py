@@ -1,3 +1,4 @@
+from math import exp
 from hypothesis.strategies import composite, builds, randoms, sampled_from
 import random
 
@@ -29,10 +30,11 @@ def parse_cfg(
     Terminals are not enclosed
     """
 
-    def parse_character_in_expansion(
+    nonterminals = NonterminalCollection()
+    expansions = {}
+
+    def parse_expansion(
         expansion_string: str,
-        nonterminals: NonterminalCollection,
-        expansions: dict[str, list[Expansion]],
     ) -> Expansion:
         expansion = Expansion()
         current_string = None
@@ -56,9 +58,6 @@ def parse_cfg(
             expansion.add_part(Terminal(current_string))
         return expansion
 
-    nonterminals = NonterminalCollection()
-    expansions = {}
-
     for line in cfg_string.split("\n"):
         if line == "":
             continue
@@ -69,9 +68,7 @@ def parse_cfg(
             nonterminals.add_nonterminal(Nonterminal(nonterminal_string, expansions))
 
         for expansion in line[1].strip().split("|"):
-            nonterminals[nonterminal_string].add_expansion(
-                parse_character_in_expansion(expansion, nonterminals, expansions)
-            )
+            nonterminals[nonterminal_string].add_expansion(parse_expansion(expansion))
 
     return nonterminals
 
@@ -79,14 +76,17 @@ def parse_cfg(
 def get_min_distances(
     nonterminals: NonterminalCollection,
 ) -> tuple[list[Nonterminal], int | float]:
+    """
+    Takes in a NonterminalCollection and returns a tuple with a list of
+    unreachable nonterminals and the minimum required depth to reach a terminal
+    from the start symbol
+    """
 
     # pass over every nonterminal and check if it has a terminal, set its min distance to 1 and add it to a frontier with distance 1
-    frontier = []
     for nonterminal in nonterminals:
         for expansion in nonterminal.get_expansions():
-            if expansion.is_terminal():
+            if expansion.produces_only_terminals():
                 nonterminal.set_min_distance_to_terminal(1)
-                frontier.append((nonterminal, 1))
                 break
 
     # Bellman Ford to get the min distances to terminals for each nonterminal
@@ -97,13 +97,12 @@ def get_min_distances(
                 if new_min_distance < nonterminal.get_min_distance_to_terminal():
                     nonterminal.set_min_distance_to_terminal(new_min_distance)
 
-    # if a nonterminal has None as min distance, it is unreachable and set it to infty. If any unreachable are found return False else return True
+    # get unreachable nonterminals and min required depth to reach a terminal from the start symbol
     unreachable_nonterminals = [
         nonterminal
         for nonterminal in nonterminals
         if nonterminal.is_currently_unreachable()
     ]
-
     reachable_nonterminal_distances = [
         nonterminal.get_min_distance_to_terminal()
         for nonterminal in nonterminals
@@ -114,6 +113,7 @@ def get_min_distances(
         if reachable_nonterminal_distances
         else float("inf")
     )
+
     return unreachable_nonterminals, min_required_depth
 
 
@@ -122,16 +122,19 @@ def generate_string(
     nonterminals: NonterminalCollection,
     max_depth: int,
 ) -> str:
+    """
+    Generates strings from a CFG defined by a NonterminalCollection.
+    Limit search to strings derivable with a max depth using algorithm from class.
+    """
 
     start_symbol = nonterminals["S"]
-    current_depth = 0
+    remaining_depth = max_depth
+
     # maybe use a custom parse tree class to make the expansions easier
     current_string = [start_symbol]
     next_nonterminal = start_symbol
 
-    while current_depth <= max_depth and next_nonterminal != [None]:
-        remaining_depth = max_depth - current_depth
-
+    while remaining_depth >= 0 and next_nonterminal != [None]:
         potential_expansions = next_nonterminal.get_expansions()  # type: ignore
         valid_expansions = []
         for expansion in potential_expansions:
@@ -151,7 +154,7 @@ def generate_string(
         )
         print(f"current string: {current_string}")
 
-        current_depth += 1
+        remaining_depth -= 1
         # use default value of next_nonterminal=[None] to break loop if no nonterminal is found
         next_nonterminal = next(
             (part for part in current_string if isinstance(part, Nonterminal)), [None]
@@ -195,10 +198,13 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
         )
 
     # generate random string from grammar w/ max depths
-    max_depth = max_depth if max_depth is not None else 10
-    result = generate_string(nonterminals, max_depth)
+    depth = (
+        max_depth
+        if max_depth is not None
+        else min_required_depth if min_required_depth != float("inf") else 10
+    )
+    result = generate_string(nonterminals, depth)  # type: ignore
     print(f"generated: {result}")
 
-    print(f"returning: {result}")
     return result
     # return draw(result)

@@ -60,7 +60,7 @@ class Expansion:
     def add_part(self, part: Terminal | Nonterminal):
         self._expansion.append(part)
 
-    def is_terminal(self):
+    def produces_only_terminals(self):
         return all(isinstance(part, Terminal) for part in self._expansion)
 
     def get_min_distance_to_terminal(self):
