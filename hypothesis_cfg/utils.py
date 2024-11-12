@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class Nonterminal:
     def __init__(self, nonterminal, expansions) -> None:
         self._nonterminal = nonterminal
@@ -75,3 +78,39 @@ class Expansion:
 
     def __repr__(self) -> str:
         return " ".join(map(str, self._expansion))
+
+
+class NonterminalCollection:
+    def __init__(self):
+        self._nonterminals: dict[str, Nonterminal] = {}
+
+    def add_nonterminal(self, nonterminal: Nonterminal):
+        if nonterminal.get_nonterminal() not in self._nonterminals:
+            self._nonterminals[nonterminal.get_nonterminal()] = nonterminal
+
+    def get_nonterminal(self, nonterminal: str) -> Nonterminal:
+        return self._nonterminals[nonterminal]
+
+    def __iter__(self):
+        return iter(self._nonterminals.values())
+
+    def __contains__(self, nonterminal: str | Nonterminal) -> bool:
+        if isinstance(nonterminal, Nonterminal):
+            return nonterminal in self._nonterminals.values()
+        elif isinstance(nonterminal, str):
+            return nonterminal in self._nonterminals
+        print("NonterminalCollection __contains__ got unexpected type")
+
+    def __getitem__(self, nonterminal: str) -> Nonterminal:
+        return self._nonterminals[nonterminal]
+
+    def __repr__(self) -> str:
+        return str(self._nonterminals)
+
+    def __len__(self) -> int:
+        return len(self._nonterminals)
+
+
+class ExpansionCollection:
+    def __init__(self):
+        self._expansions: dict[str, list[Expansion]] = {}
