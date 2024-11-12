@@ -18,7 +18,7 @@ def get_cfg_string(cfg_file_path: str) -> str:
 # maybe check fuzzing book to see if they have a better parser
 def parse_cfg(
     cfg_string: str,
-) -> tuple[NonterminalCollection, dict[str, list[Expansion]]]:
+) -> NonterminalCollection:
     """
     Takes in CFG's defined with the following format:
     S is the start symbol
@@ -73,7 +73,7 @@ def parse_cfg(
                 parse_character_in_expansion(expansion, nonterminals, expansions)
             )
 
-    return nonterminals, expansions
+    return nonterminals
 
 
 def get_min_distances(
@@ -120,7 +120,6 @@ def get_min_distances(
 # @composite
 def generate_string(
     nonterminals: NonterminalCollection,
-    expansions: dict[str, list[Expansion]],
     max_depth: int,
 ) -> str:
 
@@ -129,8 +128,6 @@ def generate_string(
     # maybe use a custom parse tree class to make the expansions easier
     current_string = [start_symbol]
     next_nonterminal = start_symbol
-
-    print(f"expansions: {expansions}")
 
     while current_depth <= max_depth and next_nonterminal != [None]:
         remaining_depth = max_depth - current_depth
@@ -175,9 +172,10 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
         return ""
 
     # parse file and get grammar in python classes
-    nonterminals, expansions = parse_cfg(cfg_string)
+    nonterminals = parse_cfg(cfg_string)
     print(f"nonterminals: {nonterminals}")
-    print(f"expansions: {expansions}")
+    for nonterminal in nonterminals:
+        print(f"{nonterminal} expansions: {nonterminal.get_expansions()}")
 
     # graph exploration to label min distances to terminals
     unreachable_nonterminals, min_required_depth = get_min_distances(nonterminals)
@@ -198,7 +196,7 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
 
     # generate random string from grammar w/ max depths
     max_depth = max_depth if max_depth is not None else 10
-    result = generate_string(nonterminals, expansions, max_depth)
+    result = generate_string(nonterminals, max_depth)
     print(f"generated: {result}")
 
     print(f"returning: {result}")

@@ -109,8 +109,3 @@ class NonterminalCollection:
 
     def __len__(self) -> int:
         return len(self._nonterminals)
-
-
-class ExpansionCollection:
-    def __init__(self):
-        self._expansions: dict[str, list[Expansion]] = {}
