@@ -3,7 +3,7 @@ from hypothesis.strategies import composite, builds
 from utils import Nonterminal, Terminal
 
 
-def get_cfg_string(cfg_file_path: str):
+def get_cfg_string(cfg_file_path: str) -> str:
     try:
         with open(cfg_file_path, "r") as f:
             cfg = f.read()
@@ -15,7 +15,11 @@ def get_cfg_string(cfg_file_path: str):
 
 # needs to be make more robust and be less restrictive
 # maybe check fuzzing book to see if they have a better parser
-def parse_cfg(cfg_string: str):
+def parse_cfg(
+    cfg_string: str,
+) -> tuple[
+    dict[str, Nonterminal], dict[Nonterminal, list[list[Terminal | Nonterminal]]]
+]:
     """
     Takes in CFG's defined with the following format:
     S is the start symbol
@@ -48,7 +52,7 @@ def parse_cfg(cfg_string: str):
             expansion.append(Terminal(current_string))
         return expansion
 
-    nonterminals = set()
+    nonterminals = {}
     expansions = {}
 
     for line in cfg_string.split("\n"):
@@ -56,14 +60,63 @@ def parse_cfg(cfg_string: str):
             continue
 
         line = line.split(":=")
-        nonterminal = Nonterminal(line[0].strip())
-        nonterminals.add(nonterminal)
+        nonterminal = line[0].strip()
+        nonterminals[nonterminal] = Nonterminal(nonterminal)
+        nonterminal = nonterminals[nonterminal]
 
         expansions[nonterminal] = []
         for expansion in line[1].strip().split("|"):
             expansions[nonterminal].append(parse_character_in_expansion(expansion))
 
     return nonterminals, expansions
+
+
+def get_min_distances(
+    nonterminals: dict[str, Nonterminal],
+    expansions: dict[Nonterminal, list[list[Terminal | Nonterminal]]],
+) -> bool:
+
+    # pass over every nonterminal and check if it has a terminal, set its min distance to 1 and add it to a frontier with distance 1
+    frontier = []
+    for nonterminal in nonterminals.values():
+        nt_expansions = expansions[nonterminal]
+        for expansion in nt_expansions:
+            if len(expansion) == 1 and isinstance(expansion[0], Terminal):
+                nonterminal.set_min_distance_to_terminal(1)
+                frontier.append((nonterminal, 1))
+                break
+
+        if nonterminal.get_min_distance_to_terminal() is None:
+            nonterminal.set_min_distance_to_terminal(float("inf"))
+
+    # Bellman Ford to get the min distances to terminals for each nonterminal
+    for _ in range(len(nonterminals)):
+        for nonterminal in nonterminals.values():
+            for expansion in expansions[nonterminal]:
+                distances_to_terminal = []
+
+                for part in expansion:
+                    if isinstance(part, Nonterminal):
+                        distances_to_terminal.append(
+                            nonterminals[
+                                part.get_nonterminal()
+                            ].get_min_distance_to_terminal()
+                            + 1
+                        )
+                    else:
+                        distances_to_terminal.append(1)
+
+                if (
+                    max(distances_to_terminal)
+                    < nonterminal.get_min_distance_to_terminal()
+                ):
+                    nonterminal.set_min_distance_to_terminal(max(distances_to_terminal))
+
+    # if a nonterminal has None as min distance, it is unreachable and set it to infty. If any unreachable are found return False else return True
+    for nonterminal in nonterminals.values():
+        if nonterminal.get_min_distance_to_terminal() == float("inf"):
+            return True
+    return False
 
 
 @composite
@@ -82,9 +135,15 @@ def cfg(draw, cfg_file_path: str = ""):
     print(f"expansions: {expansions}")
 
     # graph exploration to label min distances to terminals
-    # get_min_distances(nonterminals, expansions)
+    unreachable_detected = get_min_distances(nonterminals, expansions)
+    print(f"unreachable_detected: {unreachable_detected}")
+    for nonterminal in nonterminals.values():
+        print(
+            f"{nonterminal.get_nonterminal()} min_distance_to_terminal: {nonterminal.get_min_distance_to_terminal()}"
+        )
 
     # generate random string from grammar w/ max depths
+    result = generate_string(nonterminals, expansions)
 
     result = "1+1"
     print(f"returning: {result}")
