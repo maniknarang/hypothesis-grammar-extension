@@ -26,25 +26,27 @@ def parse_cfg(cfg_string: str):
     Terminals are not enclosed
     """
 
-    def parse_character_in_expansion(char, done=False):
-        while True:
-            expansion = []
-            current_string = None
-            while not done:
-                if char == "<":
-                    if current_string is not None:
-                        expansion.append(Terminal(current_string))
-                        current_string = None
-                elif char == ">":
-                    if current_string is not None:
-                        expansion.append(Nonterminal(current_string))
-                        current_string = None
-                else:
-                    if current_string is None:
-                        current_string = ""
-                    current_string += char
-                yield None
-            yield expansions
+    def parse_character_in_expansion(
+        expansion_string: str,
+    ) -> list[Terminal | Nonterminal]:
+        expansion = []
+        current_string = None
+        for char in expansion_string:
+            if char == "<":
+                if current_string is not None:
+                    expansion.append(Terminal(current_string))
+                    current_string = None
+            elif char == ">":
+                if current_string is not None:
+                    expansion.append(Nonterminal(current_string))
+                    current_string = None
+            else:
+                if current_string is None:
+                    current_string = ""
+                current_string += char
+        if current_string is not None:
+            expansion.append(Terminal(current_string))
+        return expansion
 
     nonterminals = set()
     expansions = {}
@@ -59,11 +61,7 @@ def parse_cfg(cfg_string: str):
 
         expansions[nonterminal] = []
         for expansion in line[1].strip().split("|"):
-            for char in expansion:
-                parse_character_in_expansion(char)
-            expansions[nonterminal].append(
-                parse_character_in_expansion(None, done=True)
-            )
+            expansions[nonterminal].append(parse_character_in_expansion(expansion))
 
     return nonterminals, expansions
 
@@ -84,6 +82,7 @@ def cfg(draw, cfg_file_path: str = ""):
     print(f"expansions: {expansions}")
 
     # graph exploration to label min distances to terminals
+    # get_min_distances(nonterminals, expansions)
 
     # generate random string from grammar w/ max depths
 

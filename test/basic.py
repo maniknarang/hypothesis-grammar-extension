@@ -12,7 +12,6 @@ from hypothesis_cfg import cfg
 
 
 def sum(mathexpr: str) -> int:
-    print(f"Testing mathexpr: {mathexpr}")
     return eval(mathexpr)
 
 
