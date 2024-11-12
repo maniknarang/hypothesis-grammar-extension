@@ -205,7 +205,28 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int = None):
         print(
             f"{nonterminal.get_nonterminal()} min_distance_to_terminal: {nonterminal.get_min_distance_to_terminal()}"
         )
-    # maybe want to warn if max_depth is too low or if theres any unreachable nonterminals?
+
+    # Check if any nonterminal is unreachable (distance = inf)
+    unreachable_nonterminals = [
+        nonterminal for nonterminal in nonterminals.values()
+        if nonterminal.get_min_distance_to_terminal() == float("inf")
+    ]
+    
+    if unreachable_nonterminals:
+        print("WARNING: There are unreachable nonterminals:", [
+            nonterminal.get_nonterminal() for nonterminal in unreachable_nonterminals
+        ])
+
+    # Check if max_depth is too low
+    if max_depth is not None:
+        min_required_depth = max(
+            nonterminal.get_min_distance_to_terminal() 
+            for nonterminal in nonterminals.values()
+            if nonterminal.get_min_distance_to_terminal() != float("inf")
+        )
+
+        if max_depth < min_required_depth:
+            print(f"WARNING: max_depth ({max_depth}) is too low. Minimum required depth to reach a terminal is {min_required_depth}.")
 
     # generate random string from grammar w/ max depths
     max_depth = max_depth if max_depth is not None else 10
