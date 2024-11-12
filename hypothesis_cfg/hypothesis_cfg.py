@@ -206,7 +206,7 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int = None):
             f"{nonterminal.get_nonterminal()} min_distance_to_terminal: {nonterminal.get_min_distance_to_terminal()}"
         )
 
-    # Check if any nonterminal is unreachable (distance = inf)
+    # check if any nonterminal is unreachable (distance = inf)
     unreachable_nonterminals = [
         nonterminal for nonterminal in nonterminals.values()
         if nonterminal.get_min_distance_to_terminal() == float("inf")
@@ -217,7 +217,7 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int = None):
             nonterminal.get_nonterminal() for nonterminal in unreachable_nonterminals
         ])
 
-    # Check if max_depth is too low
+    # check if max_depth is too low
     if max_depth is not None:
         min_required_depth = max(
             nonterminal.get_min_distance_to_terminal() 
