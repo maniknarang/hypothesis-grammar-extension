@@ -16,7 +16,7 @@ def sum(mathexpr: str) -> int:
     return eval(mathexpr)
 
 
-@given(cfg("tests/grammar.cfg"))
+@given(cfg("test/basic.cfg"))
 def test_sum(mathexpr: str):
     assert sum(mathexpr) == eval(mathexpr)
 
