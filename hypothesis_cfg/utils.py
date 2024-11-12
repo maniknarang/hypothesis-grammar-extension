@@ -1,17 +1,33 @@
-# maybe pass in the expansions dict so we can access it as a field of the nonterminal object?
 class Nonterminal:
-    def __init__(self, nonterminal) -> None:
+    def __init__(self, nonterminal, expansions) -> None:
         self._nonterminal = nonterminal
-        self._min_distance_to_terminal = None
+        self._expansions = expansions
+        self._min_distance_to_terminal = float("inf")
+
+        if self.get_nonterminal() not in self._expansions:
+            self._expansions[self.get_nonterminal()] = []
 
     def get_nonterminal(self):
         return self._nonterminal
 
-    def get_min_distance_to_terminal(self):
+    def get_min_distance_to_terminal(self) -> float:
         return self._min_distance_to_terminal
+
+    def is_currently_unreachable(self) -> bool:
+        return self._min_distance_to_terminal == float("inf")
 
     def set_min_distance_to_terminal(self, min_distance_to_terminal):
         self._min_distance_to_terminal = min_distance_to_terminal
+
+    def get_expansions(self) -> list:
+        return (
+            self._expansions[self.get_nonterminal()]
+            if self.get_nonterminal() in self._expansions
+            else []
+        )
+
+    def add_expansion(self, expansion):
+        self._expansions[self.get_nonterminal()].append(expansion)
 
     def __repr__(self) -> str:
         return f"<{self._nonterminal}>"
@@ -29,3 +45,33 @@ class Terminal:
 
     def __repr__(self) -> str:
         return f"{self._terminal}"
+
+
+class Expansion:
+    def __init__(self) -> None:
+        self._expansion = []
+
+    def get_expansion(self):
+        return self._expansion
+
+    def add_part(self, part: Terminal | Nonterminal):
+        self._expansion.append(part)
+
+    def is_terminal(self):
+        return all(isinstance(part, Terminal) for part in self._expansion)
+
+    def get_min_distance_to_terminal(self):
+        return max(
+            (
+                part.get_min_distance_to_terminal() + 1
+                if isinstance(part, Nonterminal)
+                else 1
+            )
+            for part in self._expansion
+        )
+
+    def to_list(self):
+        return self.get_expansion()
+
+    def __repr__(self) -> str:
+        return " ".join(map(str, self._expansion))

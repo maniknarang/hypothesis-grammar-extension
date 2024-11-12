@@ -1,7 +1,7 @@
 from hypothesis.strategies import composite, builds, randoms, sampled_from
 import random
 
-from utils import Nonterminal, Terminal
+from utils import Nonterminal, Terminal, Expansion
 
 
 def get_cfg_string(cfg_file_path: str) -> str:
@@ -18,9 +18,7 @@ def get_cfg_string(cfg_file_path: str) -> str:
 # maybe check fuzzing book to see if they have a better parser
 def parse_cfg(
     cfg_string: str,
-) -> tuple[
-    dict[str, Nonterminal], dict[Nonterminal, list[list[Terminal | Nonterminal]]]
-]:
+) -> tuple[dict[str, Nonterminal], dict[str, list[Expansion]]]:
     """
     Takes in CFG's defined with the following format:
     S is the start symbol
@@ -33,24 +31,32 @@ def parse_cfg(
 
     def parse_character_in_expansion(
         expansion_string: str,
-    ) -> list[Terminal | Nonterminal]:
-        expansion = []
+        nonterminals: dict[str, Nonterminal],
+        expansions: dict[str, list[Expansion]],
+    ) -> Expansion:
+        expansion = Expansion()
         current_string = None
         for char in expansion_string:
             if char == "<":
                 if current_string is not None:
-                    expansion.append(Terminal(current_string))
+                    expansion.add_part(Terminal(current_string))
                     current_string = None
             elif char == ">":
                 if current_string is not None:
-                    expansion.append(Nonterminal(current_string))
+                    if current_string in nonterminals:
+                        expansion.add_part(nonterminals[current_string])
+                    else:
+                        nonterminals[current_string] = Nonterminal(
+                            current_string, expansions
+                        )
+                        expansion.add_part(nonterminals[current_string])
                     current_string = None
             else:
                 if current_string is None:
                     current_string = ""
                 current_string += char
         if current_string is not None:
-            expansion.append(Terminal(current_string))
+            expansion.add_part(Terminal(current_string))
         return expansion
 
     nonterminals = {}
@@ -61,69 +67,65 @@ def parse_cfg(
             continue
 
         line = line.split(":=")
-        nonterminal = line[0].strip()
-        nonterminals[nonterminal] = Nonterminal(nonterminal)
-        nonterminal = nonterminals[nonterminal]
+        nonterminal_string = line[0].strip()
+        if nonterminal_string not in nonterminals:
+            nonterminals[nonterminal_string] = Nonterminal(
+                nonterminal_string, expansions
+            )
 
-        expansions[nonterminal] = []
         for expansion in line[1].strip().split("|"):
-            expansions[nonterminal].append(parse_character_in_expansion(expansion))
+            nonterminals[nonterminal_string].add_expansion(
+                parse_character_in_expansion(expansion, nonterminals, expansions)
+            )
 
     return nonterminals, expansions
 
 
 def get_min_distances(
     nonterminals: dict[str, Nonterminal],
-    expansions: dict[Nonterminal, list[list[Terminal | Nonterminal]]],
-) -> bool:
+) -> tuple[list[Nonterminal], int | float]:
 
     # pass over every nonterminal and check if it has a terminal, set its min distance to 1 and add it to a frontier with distance 1
     frontier = []
     for nonterminal in nonterminals.values():
-        nt_expansions = expansions[nonterminal]
-        for expansion in nt_expansions:
-            if len(expansion) == 1 and isinstance(expansion[0], Terminal):
+        for expansion in nonterminal.get_expansions():
+            if expansion.is_terminal():
                 nonterminal.set_min_distance_to_terminal(1)
                 frontier.append((nonterminal, 1))
                 break
 
-        if nonterminal.get_min_distance_to_terminal() is None:
-            nonterminal.set_min_distance_to_terminal(float("inf"))
-
     # Bellman Ford to get the min distances to terminals for each nonterminal
     for _ in range(len(nonterminals)):
         for nonterminal in nonterminals.values():
-            for expansion in expansions[nonterminal]:
-                distances_to_terminal = []
-
-                for part in expansion:
-                    if isinstance(part, Nonterminal):
-                        distances_to_terminal.append(
-                            nonterminals[
-                                part.get_nonterminal()
-                            ].get_min_distance_to_terminal()
-                            + 1
-                        )
-                    else:
-                        distances_to_terminal.append(1)
-
-                if (
-                    max(distances_to_terminal)
-                    < nonterminal.get_min_distance_to_terminal()
-                ):
-                    nonterminal.set_min_distance_to_terminal(max(distances_to_terminal))
+            for expansion in nonterminal.get_expansions():
+                new_min_distance = expansion.get_min_distance_to_terminal()
+                if new_min_distance < nonterminal.get_min_distance_to_terminal():
+                    nonterminal.set_min_distance_to_terminal(new_min_distance)
 
     # if a nonterminal has None as min distance, it is unreachable and set it to infty. If any unreachable are found return False else return True
-    for nonterminal in nonterminals.values():
-        if nonterminal.get_min_distance_to_terminal() == float("inf"):
-            return True
-    return False
+    unreachable_nonterminals = [
+        nonterminal
+        for nonterminal in nonterminals.values()
+        if nonterminal.is_currently_unreachable()
+    ]
+
+    reachable_nonterminal_distances = [
+        nonterminal.get_min_distance_to_terminal()
+        for nonterminal in nonterminals.values()
+        if nonterminal.get_min_distance_to_terminal() != float("inf")
+    ]
+    min_required_depth = (
+        max(reachable_nonterminal_distances)
+        if reachable_nonterminal_distances
+        else float("inf")
+    )
+    return unreachable_nonterminals, min_required_depth
 
 
 # @composite
 def generate_string(
     nonterminals: dict[str, Nonterminal],
-    expansions: dict[Nonterminal, list[list[Terminal | Nonterminal]]],
+    expansions: dict[str, list[Expansion]],
     max_depth: int,
 ) -> str:
 
@@ -134,41 +136,25 @@ def generate_string(
     next_nonterminal = start_symbol
 
     print(f"expansions: {expansions}")
-    print(f"expansions: {expansions}")
 
     while current_depth <= max_depth and next_nonterminal != [None]:
         remaining_depth = max_depth - current_depth
 
-        potential_expansions = expansions[next_nonterminal]
+        potential_expansions = next_nonterminal.get_expansions()  # type: ignore
         valid_expansions = []
         for expansion in potential_expansions:
-            part_depths = []
-            for part in expansion:
-                if isinstance(part, Nonterminal):
-                    part_depths.append(
-                        nonterminals[
-                            part.get_nonterminal()
-                        ].get_min_distance_to_terminal()
-                    )
-                else:
-                    part_depths.append(1)
-            expansion_depth = max(part_depths)
-
+            expansion_depth = expansion.get_min_distance_to_terminal()
             if expansion_depth <= remaining_depth:
                 valid_expansions.append(expansion)
 
         print(f"valid_expansions: {valid_expansions}")
         expansion = random.choice(valid_expansions)
         # expansion = draw(sampled_from(valid_expansions))
-        print(f"chose: {expansion}")
-        for i, part in enumerate(expansion):
-            if isinstance(part, Nonterminal):
-                expansion[i] = nonterminals[part.get_nonterminal()]
-        print(f"current string: {current_string}, expansion: {expansion}")
+        print(f"current string: {current_string}, chose expansion: {expansion}")
 
         current_string = (
             current_string[: current_string.index(next_nonterminal)]
-            + expansion
+            + expansion.to_list()
             + current_string[current_string.index(next_nonterminal) + 1 :]
         )
         print(f"current string: {current_string}")
@@ -184,53 +170,36 @@ def generate_string(
 
 
 @composite
-def cfg(draw, cfg_file_path: str = "", max_depth: int = None):
+def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
 
     # open file
     print(f"cfg_file_path: {cfg_file_path}")
     cfg_string = get_cfg_string(cfg_file_path)
+    print(f"cfg_string: {cfg_string}")
     if cfg_string == "":
         return ""
 
     # parse file and get grammar in python classes
-    print(f"cfg_string: {cfg_string}")
     nonterminals, expansions = parse_cfg(cfg_string)
     print(f"nonterminals: {nonterminals}")
     print(f"expansions: {expansions}")
 
     # graph exploration to label min distances to terminals
-    unreachable_detected = get_min_distances(nonterminals, expansions)
-    print(f"unreachable_detected: {unreachable_detected}")
+    unreachable_nonterminals, min_required_depth = get_min_distances(nonterminals)
+    print(f"unreachable_detected: {unreachable_nonterminals}")
     for nonterminal in nonterminals.values():
         print(
             f"{nonterminal.get_nonterminal()} min_distance_to_terminal: {nonterminal.get_min_distance_to_terminal()}"
         )
-
-    # check if any nonterminal is unreachable (distance = inf)
-    unreachable_nonterminals = [
-        nonterminal
-        for nonterminal in nonterminals.values()
-        if nonterminal.get_min_distance_to_terminal() == float("inf")
-    ]
-
     if unreachable_nonterminals:
         print(
             "WARNING: There are unreachable nonterminals:",
             [nonterminal.get_nonterminal() for nonterminal in unreachable_nonterminals],
         )
-
-    # check if max_depth is too low
-    if max_depth is not None:
-        min_required_depth = max(
-            nonterminal.get_min_distance_to_terminal()
-            for nonterminal in nonterminals.values()
-            if nonterminal.get_min_distance_to_terminal() != float("inf")
+    if max_depth is not None and max_depth < min_required_depth:
+        print(
+            f"WARNING: max_depth ({max_depth}) is too low. Minimum required depth to reach a terminal is {min_required_depth}."
         )
-
-        if max_depth < min_required_depth:
-            print(
-                f"WARNING: max_depth ({max_depth}) is too low. Minimum required depth to reach a terminal is {min_required_depth}."
-            )
 
     # generate random string from grammar w/ max depths
     max_depth = max_depth if max_depth is not None else 10
