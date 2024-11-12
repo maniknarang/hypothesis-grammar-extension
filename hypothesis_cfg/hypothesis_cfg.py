@@ -1,4 +1,5 @@
-from hypothesis.strategies import composite, builds, randoms
+from hypothesis.strategies import composite, builds, randoms, sampled_from
+import random
 
 from utils import Nonterminal, Terminal
 
@@ -119,7 +120,7 @@ def get_min_distances(
     return False
 
 
-@composite
+# @composite
 def generate_string(
     nonterminals: dict[str, Nonterminal],
     expansions: dict[Nonterminal, list[list[Terminal | Nonterminal]]],
@@ -158,6 +159,7 @@ def generate_string(
 
         print(f"valid_expansions: {valid_expansions}")
         expansion = random.choice(valid_expansions)
+        # expansion = draw(sampled_from(valid_expansions))
         print(f"chose: {expansion}")
         for i, part in enumerate(expansion):
             if isinstance(part, Nonterminal):
@@ -212,3 +214,4 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int = None):
 
     print(f"returning: {result}")
     return result
+    # return draw(result)
