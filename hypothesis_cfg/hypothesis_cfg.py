@@ -167,15 +167,15 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
     if cfg_string == "":
         return ""
 
-    print()
     # parse file and get grammar in python classes
+    print()
     nonterminals = parse_cfg(cfg_string)
     print(f"nonterminals: {nonterminals}")
     for nonterminal in nonterminals:
         print(f"{nonterminal} expansions: {nonterminal.get_expansions()}")
 
-    print()
     # graph exploration to label min distances to terminals
+    print()
     unreachable_nonterminals, min_required_depth = get_min_distances(nonterminals)
     print(f"unreachable_nonterminals: {unreachable_nonterminals}")
     for nonterminal in nonterminals:
@@ -192,12 +192,12 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
             f"WARNING: max_depth ({max_depth}) is too low. Minimum required depth to reach a terminal is {min_required_depth}."
         )
 
-    print()
     # generate random string from grammar w/ max depths
+    print()
     depth = (
         max_depth
         if max_depth is not None
-        else min_required_depth * 2 if min_required_depth != float("inf") else 10
+        else min_required_depth * 2 if min_required_depth < float("inf") else 10
     )
     print(f"max_depth: {depth}")
     result = generate_string(nonterminals["S"], depth)  # type: ignore
