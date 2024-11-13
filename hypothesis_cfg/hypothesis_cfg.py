@@ -119,49 +119,42 @@ def get_min_distances(
 
 # @composite
 def generate_string(
-    nonterminals: NonterminalCollection,
+    start_part: Nonterminal | Terminal,
     max_depth: int,
 ) -> str:
     """
-    Generates strings from a CFG defined by a NonterminalCollection.
+    Recursively generates strings from a CFG defined by a NonterminalCollection.
     Limit search to strings derivable with a max depth using algorithm from class.
     """
 
-    start_symbol = nonterminals["S"]
-    remaining_depth = max_depth
+    # base case: terminal node - return the terminal
+    if isinstance(start_part, Terminal):
+        print("terminal node: ", start_part)
+        return start_part.get_terminal()
 
-    # maybe use a custom parse tree class to make the expansions easier
-    current_string = [start_symbol]
-    next_nonterminal = start_symbol
+    # recursive case: nonterminal node - get a list of all expansions
+    print("next nonterminal node: ", start_part)
+    potential_expansions: list[Expansion] = start_part.get_expansions()
 
-    while remaining_depth >= 0 and next_nonterminal != [None]:
-        potential_expansions = next_nonterminal.get_expansions()  # type: ignore
-        valid_expansions = []
-        for expansion in potential_expansions:
-            expansion_depth = expansion.get_min_distance_to_terminal()
-            if expansion_depth <= remaining_depth:
-                valid_expansions.append(expansion)
+    # filter out expansions that are too deep
+    valid_expansions = [
+        expansion
+        for expansion in potential_expansions
+        if expansion.get_min_distance_to_terminal() <= max_depth
+    ]
+    print(f"valid_expansions: {valid_expansions}")
 
-        print(f"valid_expansions: {valid_expansions}")
-        expansion = random.choice(valid_expansions)
-        # expansion = draw(sampled_from(valid_expansions))
-        print(f"current string: {current_string}, chose expansion: {expansion}")
+    # choose a random valid expansion
+    expansion = random.choice(valid_expansions)
+    # expansion = draw(sampled_from(valid_expansions))
+    print(f"chosen_expansion: {expansion}")
 
-        current_string = (
-            current_string[: current_string.index(next_nonterminal)]
-            + expansion.to_list()
-            + current_string[current_string.index(next_nonterminal) + 1 :]
-        )
-        print(f"current string: {current_string}")
+    # recurse on all children and concatenate the results
+    result = "".join(
+        generate_string(child, max_depth - 1) for child in expansion.get_expansion()
+    )
 
-        remaining_depth -= 1
-        # use default value of next_nonterminal=[None] to break loop if no nonterminal is found
-        next_nonterminal = next(
-            (part for part in current_string if isinstance(part, Nonterminal)), [None]
-        )
-        print(f"next_nonterminal: {next_nonterminal}")
-
-    return "".join([str(part) for part in current_string])
+    return result
 
 
 @composite
@@ -170,19 +163,21 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
     # open file
     print(f"cfg_file_path: {cfg_file_path}")
     cfg_string = get_cfg_string(cfg_file_path)
-    print(f"cfg_string: {cfg_string}")
+    print(f"cfg_string:\n{cfg_string}")
     if cfg_string == "":
         return ""
 
+    print()
     # parse file and get grammar in python classes
     nonterminals = parse_cfg(cfg_string)
     print(f"nonterminals: {nonterminals}")
     for nonterminal in nonterminals:
         print(f"{nonterminal} expansions: {nonterminal.get_expansions()}")
 
+    print()
     # graph exploration to label min distances to terminals
     unreachable_nonterminals, min_required_depth = get_min_distances(nonterminals)
-    print(f"unreachable_detected: {unreachable_nonterminals}")
+    print(f"unreachable_nonterminals: {unreachable_nonterminals}")
     for nonterminal in nonterminals:
         print(
             f"{nonterminal} min_distance_to_terminal: {nonterminal.get_min_distance_to_terminal()}"
@@ -197,13 +192,15 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
             f"WARNING: max_depth ({max_depth}) is too low. Minimum required depth to reach a terminal is {min_required_depth}."
         )
 
+    print()
     # generate random string from grammar w/ max depths
     depth = (
         max_depth
         if max_depth is not None
-        else min_required_depth if min_required_depth != float("inf") else 10
+        else min_required_depth * 2 if min_required_depth != float("inf") else 10
     )
-    result = generate_string(nonterminals, depth)  # type: ignore
+    print(f"max_depth: {depth}")
+    result = generate_string(nonterminals["S"], depth)  # type: ignore
     print(f"generated: {result}")
 
     return result

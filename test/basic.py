@@ -8,7 +8,7 @@ sys.path.insert(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hypothesis_cfg")),
 )
 
-from hypothesis_cfg import cfg
+from hypothesis_cfg import cfg  # type: ignore
 
 
 def sum(mathexpr: str) -> int:
