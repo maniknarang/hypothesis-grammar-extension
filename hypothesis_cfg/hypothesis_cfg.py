@@ -24,10 +24,10 @@ def parse_cfg(
     Takes in CFG's defined with the following format:
     S is the start symbol
     Nonterminals are enclosed in <> (reserved characters)
-    Expansions are defined with :=
+    Terminals are enclosed in "" (quotation marks)
+    Expansions are defined with := 
     Alternatives are separated by |
     Nonterminals must be defined in a single line
-    Terminals are not enclosed
     """
 
     nonterminals = NonterminalCollection()
@@ -38,24 +38,42 @@ def parse_cfg(
     ) -> Expansion:
         expansion = Expansion()
         current_string = None
-        for char in expansion_string:
-            if char == "<":
-                if current_string is not None:
-                    expansion.add_part(Terminal(current_string))
-                    current_string = None
-            elif char == ">":
-                if current_string is not None:
-                    nonterminals.add_nonterminal(
-                        Nonterminal(current_string, expansions)
-                    )
-                    expansion.add_part(nonterminals[current_string])
-                    current_string = None
+        i = 0  # to track position in expansion string
+
+        while i < len(expansion_string):
+            char = expansion_string[i]
+
+            if char == '"':  # start of a quoted terminal
+                # find the closing quote
+                end_quote_index = expansion_string.find('"', i + 1)
+                if end_quote_index == -1:
+                    raise ValueError("Unmatched quote in expansion string.")
+                terminal_value = expansion_string[i + 1:end_quote_index]
+                expansion.add_part(Terminal(terminal_value))
+                i = end_quote_index + 1  # move to the character after the closing quote
+
+            elif char == "<":  # start of a nonterminal
+                # find the closing angle bracket
+                end_angle_index = expansion_string.find(">", i + 1)
+                if end_angle_index == -1:
+                    raise ValueError("Unmatched angle bracket in expansion string.")
+                nonterminal_value = expansion_string[i + 1:end_angle_index]
+                if nonterminal_value not in nonterminals:
+                    nonterminals.add_nonterminal(Nonterminal(nonterminal_value, expansions))
+                expansion.add_part(nonterminals[nonterminal_value])
+                i = end_angle_index + 1  # move past the closing bracket
+
             else:
                 if current_string is None:
                     current_string = ""
-                current_string += char
-        if current_string is not None:
-            expansion.add_part(Terminal(current_string))
+                current_string += char  # accumulate characters for a potential terminal
+                i += 1
+
+            # If there's accumulated current_string (which would be a non-quoted terminal)
+            if current_string and (i >= len(expansion_string) or expansion_string[i] in ["<", "|", ">", " "]):
+                expansion.add_part(Terminal(current_string))
+                current_string = None  # reset after adding terminal part
+
         return expansion
 
     for line in cfg_string.split("\n"):
@@ -64,6 +82,7 @@ def parse_cfg(
 
         line = line.split(":=")
         nonterminal_string = line[0].strip()
+
         if nonterminal_string not in nonterminals:
             nonterminals.add_nonterminal(Nonterminal(nonterminal_string, expansions))
 
