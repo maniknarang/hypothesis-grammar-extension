@@ -106,12 +106,12 @@ def get_min_distances(
     reachable_nonterminal_distances = [
         nonterminal.get_min_distance_to_terminal()
         for nonterminal in nonterminals
-        if nonterminal.get_min_distance_to_terminal() != float("inf")
+        if nonterminal.get_min_distance_to_terminal() != Nonterminal.infinity
     ]
     min_required_depth = (
         max(reachable_nonterminal_distances)
         if reachable_nonterminal_distances
-        else float("inf")
+        else Nonterminal.infinity
     )
 
     return unreachable_nonterminals, min_required_depth
@@ -197,7 +197,7 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
     depth = (
         max_depth
         if max_depth is not None
-        else min_required_depth * 2 if min_required_depth < float("inf") else 10
+        else min_required_depth * 2 if min_required_depth < Nonterminal.infinity else 10
     )
     print(f"max_depth: {depth}")
     result = generate_string(nonterminals["S"], depth)  # type: ignore

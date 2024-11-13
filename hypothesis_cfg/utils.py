@@ -2,10 +2,12 @@ from typing import Any
 
 
 class Nonterminal:
+    infinity = float("inf")
+
     def __init__(self, nonterminal, expansions) -> None:
         self._nonterminal = nonterminal
         self._expansions = expansions
-        self._min_distance_to_terminal = float("inf")
+        self._min_distance_to_terminal = self.infinity
 
         if self.get_nonterminal() not in self._expansions:
             self._expansions[self.get_nonterminal()] = []
@@ -17,7 +19,7 @@ class Nonterminal:
         return self._min_distance_to_terminal
 
     def is_currently_unreachable(self) -> bool:
-        return self._min_distance_to_terminal == float("inf")
+        return self._min_distance_to_terminal == self.infinity
 
     def set_min_distance_to_terminal(self, min_distance_to_terminal):
         self._min_distance_to_terminal = min_distance_to_terminal
