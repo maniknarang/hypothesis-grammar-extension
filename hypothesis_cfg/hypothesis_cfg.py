@@ -25,7 +25,7 @@ def parse_cfg(
     S is the start symbol
     Nonterminals are enclosed in <> (reserved characters)
     Terminals are enclosed in "" (quotation marks)
-    Expansions are defined with := 
+    Expansions are defined with :=
     Alternatives are separated by |
     Nonterminals must be defined in a single line
     """
@@ -48,7 +48,7 @@ def parse_cfg(
                 end_quote_index = expansion_string.find('"', i + 1)
                 if end_quote_index == -1:
                     raise ValueError("Unmatched quote in expansion string.")
-                terminal_value = expansion_string[i + 1:end_quote_index]
+                terminal_value = expansion_string[i + 1 : end_quote_index]
                 expansion.add_part(Terminal(terminal_value))
                 i = end_quote_index + 1  # move to the character after the closing quote
 
@@ -57,9 +57,11 @@ def parse_cfg(
                 end_angle_index = expansion_string.find(">", i + 1)
                 if end_angle_index == -1:
                     raise ValueError("Unmatched angle bracket in expansion string.")
-                nonterminal_value = expansion_string[i + 1:end_angle_index]
+                nonterminal_value = expansion_string[i + 1 : end_angle_index]
                 if nonterminal_value not in nonterminals:
-                    nonterminals.add_nonterminal(Nonterminal(nonterminal_value, expansions))
+                    nonterminals.add_nonterminal(
+                        Nonterminal(nonterminal_value, expansions)
+                    )
                 expansion.add_part(nonterminals[nonterminal_value])
                 i = end_angle_index + 1  # move past the closing bracket
 
@@ -70,7 +72,10 @@ def parse_cfg(
                 i += 1
 
             # If there's accumulated current_string (which would be a non-quoted terminal)
-            if current_string and (i >= len(expansion_string) or expansion_string[i] in ["<", "|", ">", " "]):
+            if current_string and (
+                i >= len(expansion_string)
+                or expansion_string[i] in ["<", "|", ">", " "]
+            ):
                 expansion.add_part(Terminal(current_string))
                 current_string = None  # reset after adding terminal part
 
