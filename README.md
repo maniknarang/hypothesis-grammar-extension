@@ -1,3 +1,4 @@
+![Unit tests](https://github.com/anlhu/Hypothesis-Grammar-Extension/actions/workflows/test.yml/badge.svg)
 ## Hypothesis Grammar Extension
 
 This project aims to extend property-based testing in Hypothesis by integrating grammar-based input generation. The goal is to create random inputs for functions using grammars (such as regular expressions or Context-Free Grammars), which will help refine input generation to match the expected structure. The extension will provide customizable grammar definitions for common input types (e.g., emails, phone numbers), allowing users to specify their own grammars for input generation. A reach goal is to enable customizable search strategies for grammar-based inputs.
