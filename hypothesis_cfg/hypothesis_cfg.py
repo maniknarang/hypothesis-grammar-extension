@@ -51,7 +51,7 @@ def parse_cfg(
             match current_mode:
                 case Modes.NONE:
                     match char:
-                        case '"':
+                        case "'":
                             current_mode = Modes.TERMINAL
                             current_string = ""
                         case "<":
@@ -63,7 +63,7 @@ def parse_cfg(
                             raise ValueError(f"Invalid character: {char}")
                 case Modes.TERMINAL:
                     match char:
-                        case '"':
+                        case "'":
                             expansion.add_part(Terminal(current_string))
                             current_mode = Modes.NONE
                             current_string = None
