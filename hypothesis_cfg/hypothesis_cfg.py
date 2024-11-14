@@ -1,3 +1,4 @@
+from enum import Enum
 from math import exp
 from hypothesis.strategies import composite, builds, randoms, sampled_from
 import random
@@ -38,46 +39,47 @@ def parse_cfg(
     ) -> Expansion:
         expansion = Expansion()
         current_string = None
-        i = 0  # to track position in expansion string
 
-        while i < len(expansion_string):
-            char = expansion_string[i]
+        class Modes(Enum):
+            NONE = 0
+            TERMINAL = 1
+            NONTERMINAL = 2
 
-            if char == '"':  # start of a quoted terminal
-                # find the closing quote
-                end_quote_index = expansion_string.find('"', i + 1)
-                if end_quote_index == -1:
-                    raise ValueError("Unmatched quote in expansion string.")
-                terminal_value = expansion_string[i + 1 : end_quote_index]
-                expansion.add_part(Terminal(terminal_value))
-                i = end_quote_index + 1  # move to the character after the closing quote
+        current_mode = Modes.NONE
 
-            elif char == "<":  # start of a nonterminal
-                # find the closing angle bracket
-                end_angle_index = expansion_string.find(">", i + 1)
-                if end_angle_index == -1:
-                    raise ValueError("Unmatched angle bracket in expansion string.")
-                nonterminal_value = expansion_string[i + 1 : end_angle_index]
-                if nonterminal_value not in nonterminals:
-                    nonterminals.add_nonterminal(
-                        Nonterminal(nonterminal_value, expansions)
-                    )
-                expansion.add_part(nonterminals[nonterminal_value])
-                i = end_angle_index + 1  # move past the closing bracket
-
-            else:
-                if current_string is None:
-                    current_string = ""
-                current_string += char  # accumulate characters for a potential terminal
-                i += 1
-
-            # If there's accumulated current_string (which would be a non-quoted terminal)
-            if current_string and (
-                i >= len(expansion_string)
-                or expansion_string[i] in ["<", "|", ">", " "]
-            ):
-                expansion.add_part(Terminal(current_string))
-                current_string = None  # reset after adding terminal part
+        for char in expansion_string:
+            match current_mode:
+                case Modes.NONE:
+                    match char:
+                        case '"':
+                            current_mode = Modes.TERMINAL
+                            current_string = ""
+                        case "<":
+                            current_mode = Modes.NONTERMINAL
+                            current_string = ""
+                        case " ":
+                            continue
+                        case _:
+                            raise ValueError(f"Invalid character: {char}")
+                case Modes.TERMINAL:
+                    match char:
+                        case '"':
+                            expansion.add_part(Terminal(current_string))
+                            current_mode = Modes.NONE
+                            current_string = None
+                        case _:
+                            current_string += char  # type: ignore bc current_string should be str by NONE case
+                case Modes.NONTERMINAL:
+                    match char:
+                        case ">":
+                            nonterminals.add_nonterminal(
+                                Nonterminal(current_string, expansions)
+                            )
+                            expansion.add_part(nonterminals[current_string])  # type: ignore because we just added it
+                            current_mode = Modes.NONE
+                            current_string = None
+                        case _:
+                            current_string += char  # type: ignore bc current_string should be str by NONE case
 
         return expansion
 
