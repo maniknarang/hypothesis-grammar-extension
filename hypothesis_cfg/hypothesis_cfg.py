@@ -1,9 +1,8 @@
-from enum import Enum
 from math import exp
 from hypothesis.strategies import composite, builds, randoms, sampled_from
 import random
 
-from utils import Nonterminal, NonterminalCollection, Terminal, Expansion
+from utils import Nonterminal, NonterminalCollection, Terminal, Expansion, Modes
 
 
 def get_cfg_string(cfg_file_path: str) -> str:
@@ -34,55 +33,6 @@ def parse_cfg(
     nonterminals = NonterminalCollection()
     expansions = {}
 
-    def parse_expansion(
-        expansion_string: str,
-    ) -> Expansion:
-        expansion = Expansion()
-        current_string = None
-
-        class Modes(Enum):
-            NONE = 0
-            TERMINAL = 1
-            NONTERMINAL = 2
-
-        current_mode = Modes.NONE
-
-        for char in expansion_string:
-            match current_mode:
-                case Modes.NONE:
-                    match char:
-                        case "'":
-                            current_mode = Modes.TERMINAL
-                            current_string = ""
-                        case "<":
-                            current_mode = Modes.NONTERMINAL
-                            current_string = ""
-                        case " ":
-                            continue
-                        case _:
-                            raise ValueError(f"Invalid character: {char}")
-                case Modes.TERMINAL:
-                    match char:
-                        case "'":
-                            expansion.add_part(Terminal(current_string))
-                            current_mode = Modes.NONE
-                            current_string = None
-                        case _:
-                            current_string += char  # type: ignore bc current_string should be str by NONE case
-                case Modes.NONTERMINAL:
-                    match char:
-                        case ">":
-                            nonterminals.add_nonterminal(
-                                Nonterminal(current_string, expansions)
-                            )
-                            expansion.add_part(nonterminals[current_string])  # type: ignore because we just added it
-                            current_mode = Modes.NONE
-                            current_string = None
-                        case _:
-                            current_string += char  # type: ignore bc current_string should be str by NONE case
-
-        return expansion
-
     for line in cfg_string.split("\n"):
         if line == "":
             continue
@@ -93,8 +43,47 @@ def parse_cfg(
         if nonterminal_string not in nonterminals:
             nonterminals.add_nonterminal(Nonterminal(nonterminal_string, expansions))
 
-        for expansion in line[1].strip().split("|"):
-            nonterminals[nonterminal_string].add_expansion(parse_expansion(expansion))
+        for expansion_string in line[1].strip().split("|"):
+            expansion = Expansion()
+            current_string = None
+            current_mode = Modes.NONE
+            for char in expansion_string:
+                match current_mode:
+                    case Modes.NONE:
+                        match char:
+                            case "'":
+                                current_mode = Modes.TERMINAL
+                                current_string = ""
+                            case "<":
+                                current_mode = Modes.NONTERMINAL
+                                current_string = ""
+                            case " ":
+                                continue
+                            case _:
+                                raise ValueError(f"Invalid character: {char}")
+                    case Modes.TERMINAL:
+                        match char:
+                            case "'":
+                                expansion.add_part(Terminal(current_string))
+                                current_mode = Modes.NONE
+                                current_string = None
+                            case "\\":
+                                # TODO: handle backslash escape
+                                pass
+                            case _:
+                                current_string += char  # type: ignore bc current_string should be str by NONE case
+                    case Modes.NONTERMINAL:
+                        match char:
+                            case ">":
+                                nonterminals.add_nonterminal(
+                                    Nonterminal(current_string, expansions)
+                                )
+                                expansion.add_part(nonterminals[current_string])  # type: ignore because we just added it
+                                current_mode = Modes.NONE
+                                current_string = None
+                            case _:
+                                current_string += char  # type: ignore bc current_string should be str by NONE case
+            nonterminals[nonterminal_string].add_expansion(expansion)
 
     return nonterminals
 
