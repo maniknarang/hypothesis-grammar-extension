@@ -29,7 +29,7 @@ def parse_cfg(
     Alternatives are separated by |
     Nonterminal definitions are separated by an empty line
     Nonterminals definitions can span multiple lines but cannot have an empty line in the middle of a definition
-    ^ may break if we need to define a nonterminal which has multiple consecutive newlines
+        ^ may break if we need to define a nonterminal which has multiple consecutive newlines
     """
 
     nonterminals = NonterminalCollection()
