@@ -24,26 +24,27 @@ def parse_cfg(
     Takes in CFG's defined with the following format:
     S is the start symbol
     Nonterminals are enclosed in <> (reserved characters)
-    Terminals are enclosed in "" (quotation marks)
+    Terminals are enclosed in '' (single quotes)
     Expansions are defined with :=
     Alternatives are separated by |
-    Nonterminals must be defined in a single line
+    Nonterminal definitions are separated by an empty line
+    Nonterminals definitions can span multiple lines but cannot have an empty line in the middle of a definition
     """
 
     nonterminals = NonterminalCollection()
     expansions = {}
 
-    for line in cfg_string.split("\n"):
-        if line == "":
+    for nonterminal_definition in cfg_string.split("\n\n"):
+        if nonterminal_definition == "":
             continue
 
-        line = line.split(":=")
-        nonterminal_string = line[0].strip()
+        nonterminal_definition = nonterminal_definition.split(":=")
+        nonterminal_string = nonterminal_definition[0].strip()
 
         if nonterminal_string not in nonterminals:
             nonterminals.add_nonterminal(Nonterminal(nonterminal_string, expansions))
 
-        for expansion_string in line[1].strip().split("|"):
+        for expansion_string in nonterminal_definition[1].split("|"):
             expansion = Expansion()
             current_string = None
             current_mode = Modes.NONE
@@ -57,7 +58,7 @@ def parse_cfg(
                             case "<":
                                 current_mode = Modes.NONTERMINAL
                                 current_string = ""
-                            case " ":
+                            case " " | "\n" | "\t":
                                 continue
                             case _:
                                 raise ValueError(f"Invalid character: {char}")
