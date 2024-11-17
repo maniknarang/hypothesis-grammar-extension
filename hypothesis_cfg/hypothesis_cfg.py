@@ -4,6 +4,7 @@ import random
 
 from utils import Nonterminal, NonterminalCollection, Terminal, Expansion, Modes
 
+sys_random = random.SystemRandom()
 
 def get_cfg_string(cfg_file_path: str) -> str:
     try:
@@ -165,7 +166,7 @@ def generate_string(
     print(f"valid_expansions: {valid_expansions}")
 
     # choose a random valid expansion
-    expansion = random.choice(valid_expansions)
+    expansion = sys_random.choice(valid_expansions)
     # expansion = draw(sampled_from(valid_expansions))
     print(f"chosen_expansion: {expansion}")
 
