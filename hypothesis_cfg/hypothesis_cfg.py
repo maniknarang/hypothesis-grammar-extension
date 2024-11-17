@@ -70,8 +70,7 @@ def parse_cfg(
                                 current_mode = Modes.NONE
                                 current_string = None
                             case "\\":
-                                # TODO: handle backslash escape
-                                pass
+                                current_mode = Modes.BACKSLASH
                             case _:
                                 current_string += char  # type: ignore bc current_string should be str by NONE case
                     case Modes.NONTERMINAL:
@@ -85,6 +84,15 @@ def parse_cfg(
                                 current_string = None
                             case _:
                                 current_string += char  # type: ignore bc current_string should be str by NONE case
+                    case Modes.BACKSLASH:
+                        match char:  # for more \ exceptions add more cases here, for now only single quote breaks
+                            case "'":
+                                current_mode = Modes.TERMINAL
+                                current_string += char  # type: ignore bc current_string should be str by NONE case
+                            case _:
+                                current_mode = Modes.TERMINAL
+                                current_string += "\\" + char  # type: ignore bc current_string should be str by NONE case
+
             nonterminals[nonterminal_string].add_expansion(expansion)
 
     return nonterminals

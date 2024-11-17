@@ -118,3 +118,4 @@ class Modes(Enum):
     NONE = 0
     TERMINAL = 1
     NONTERMINAL = 2
+    BACKSLASH = 3
