@@ -85,7 +85,7 @@ def parse_cfg(
                             case _:
                                 current_string += char  # type: ignore bc current_string should be str by NONE case
                     case Modes.BACKSLASH:
-                        current_string += eval(f"'{'\\'+char}'")  # type: ignore bc current_string should be str by NONE case
+                        current_string += eval(f"'\\{char}'")  # type: ignore bc current_string should be str by NONE case
                         current_mode = Modes.TERMINAL
 
             nonterminals[nonterminal_string].add_expansion(expansion)
