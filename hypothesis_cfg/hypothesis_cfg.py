@@ -48,7 +48,6 @@ def parse_cfg(
         for expansion_string in nonterminal_definition[1].split("|"):
             expansion = Expansion()
             current_string = None
-            backslash_string = None
             current_mode = Modes.NONE
             for char in expansion_string:
                 match current_mode:
@@ -72,7 +71,6 @@ def parse_cfg(
                                 current_string = None
                             case "\\":
                                 current_mode = Modes.BACKSLASH
-                                backslash_string = "\\"
                             case _:
                                 current_string += char  # type: ignore bc current_string should be str by NONE case
                     case Modes.NONTERMINAL:
@@ -87,14 +85,8 @@ def parse_cfg(
                             case _:
                                 current_string += char  # type: ignore bc current_string should be str by NONE case
                     case Modes.BACKSLASH:
-                        match char:
-                            case "\\":
-                                backslash_string += char  # type: ignore bc backslash_string should be str by TERMINAL case
-                            case _:
-                                backslash_string += char  # type: ignore bc backslash_string should be str by TERMINAL case
-                                current_string += eval(f"'{backslash_string}'")  # type: ignore bc current_string should be str by NONE case
-                                backslash_string = None
-                                current_mode = Modes.TERMINAL
+                        current_string += eval(f"'{'\\'+char}'")  # type: ignore bc current_string should be str by NONE case
+                        current_mode = Modes.TERMINAL
 
             nonterminals[nonterminal_string].add_expansion(expansion)
 
