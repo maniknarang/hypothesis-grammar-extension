@@ -1,0 +1,4 @@
+hypothesis
+ipytest
+pytest
+black
