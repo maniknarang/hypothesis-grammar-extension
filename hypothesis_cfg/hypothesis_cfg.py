@@ -2,7 +2,7 @@ from math import exp
 from hypothesis.strategies import composite, builds, randoms, sampled_from
 import random
 
-from utils import Nonterminal, NonterminalCollection, Terminal, Expansion
+from utils import Nonterminal, NonterminalCollection, Terminal, Expansion, Modes
 
 
 def get_cfg_string(cfg_file_path: str) -> str:
@@ -24,75 +24,71 @@ def parse_cfg(
     Takes in CFG's defined with the following format:
     S is the start symbol
     Nonterminals are enclosed in <> (reserved characters)
-    Terminals are enclosed in "" (quotation marks)
+    Terminals are enclosed in '' (single quotes)
     Expansions are defined with :=
     Alternatives are separated by |
-    Nonterminals must be defined in a single line
+    Nonterminal definitions are separated by an empty line
+    Nonterminals definitions can span multiple lines but cannot have an empty line in the middle of a definition
+        ^ may break if we need to define a nonterminal which has multiple consecutive newlines
     """
 
     nonterminals = NonterminalCollection()
     expansions = {}
 
-    def parse_expansion(
-        expansion_string: str,
-    ) -> Expansion:
-        expansion = Expansion()
-        current_string = None
-        i = 0  # to track position in expansion string
-
-        while i < len(expansion_string):
-            char = expansion_string[i]
-
-            if char == '"':  # start of a quoted terminal
-                # find the closing quote
-                end_quote_index = expansion_string.find('"', i + 1)
-                if end_quote_index == -1:
-                    raise ValueError("Unmatched quote in expansion string.")
-                terminal_value = expansion_string[i + 1 : end_quote_index]
-                expansion.add_part(Terminal(terminal_value))
-                i = end_quote_index + 1  # move to the character after the closing quote
-
-            elif char == "<":  # start of a nonterminal
-                # find the closing angle bracket
-                end_angle_index = expansion_string.find(">", i + 1)
-                if end_angle_index == -1:
-                    raise ValueError("Unmatched angle bracket in expansion string.")
-                nonterminal_value = expansion_string[i + 1 : end_angle_index]
-                if nonterminal_value not in nonterminals:
-                    nonterminals.add_nonterminal(
-                        Nonterminal(nonterminal_value, expansions)
-                    )
-                expansion.add_part(nonterminals[nonterminal_value])
-                i = end_angle_index + 1  # move past the closing bracket
-
-            else:
-                if current_string is None:
-                    current_string = ""
-                current_string += char  # accumulate characters for a potential terminal
-                i += 1
-
-            # If there's accumulated current_string (which would be a non-quoted terminal)
-            if current_string and (
-                i >= len(expansion_string)
-                or expansion_string[i] in ["<", "|", ">", " "]
-            ):
-                expansion.add_part(Terminal(current_string))
-                current_string = None  # reset after adding terminal part
-
-        return expansion
-
-    for line in cfg_string.split("\n"):
-        if line == "":
+    for nonterminal_definition in cfg_string.split("\n\n"):
+        if nonterminal_definition == "":
             continue
 
-        line = line.split(":=")
-        nonterminal_string = line[0].strip()
+        nonterminal_definition = nonterminal_definition.split(":=")
+        nonterminal_string = nonterminal_definition[0].strip()
 
         if nonterminal_string not in nonterminals:
             nonterminals.add_nonterminal(Nonterminal(nonterminal_string, expansions))
 
-        for expansion in line[1].strip().split("|"):
-            nonterminals[nonterminal_string].add_expansion(parse_expansion(expansion))
+        for expansion_string in nonterminal_definition[1].split("|"):
+            expansion = Expansion()
+            current_string = None
+            current_mode = Modes.NONE
+            for char in expansion_string:
+                match current_mode:
+                    case Modes.NONE:
+                        match char:
+                            case "'":
+                                current_mode = Modes.TERMINAL
+                                current_string = ""
+                            case "<":
+                                current_mode = Modes.NONTERMINAL
+                                current_string = ""
+                            case " " | "\n" | "\t":
+                                continue
+                            case _:
+                                raise ValueError(f"Invalid character: {char}")
+                    case Modes.TERMINAL:
+                        match char:
+                            case "'":
+                                expansion.add_part(Terminal(current_string))
+                                current_mode = Modes.NONE
+                                current_string = None
+                            case "\\":
+                                current_mode = Modes.BACKSLASH
+                            case _:
+                                current_string += char  # type: ignore bc current_string should be str by NONE case
+                    case Modes.NONTERMINAL:
+                        match char:
+                            case ">":
+                                nonterminals.add_nonterminal(
+                                    Nonterminal(current_string, expansions)
+                                )
+                                expansion.add_part(nonterminals[current_string])  # type: ignore because we just added it
+                                current_mode = Modes.NONE
+                                current_string = None
+                            case _:
+                                current_string += char  # type: ignore bc current_string should be str by NONE case
+                    case Modes.BACKSLASH:
+                        current_string += eval(f"'\\{char}'")  # type: ignore bc current_string should be str by NONE case
+                        current_mode = Modes.TERMINAL
+
+            nonterminals[nonterminal_string].add_expansion(expansion)
 
     return nonterminals
 

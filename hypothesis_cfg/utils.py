@@ -1,4 +1,4 @@
-from typing import Any
+from enum import Enum
 
 
 class Nonterminal:
@@ -107,7 +107,15 @@ class NonterminalCollection:
         return self._nonterminals[nonterminal]
 
     def __repr__(self) -> str:
+
         return str(self._nonterminals)
 
     def __len__(self) -> int:
         return len(self._nonterminals)
+
+
+class Modes(Enum):
+    NONE = 0
+    TERMINAL = 1
+    NONTERMINAL = 2
+    BACKSLASH = 3
