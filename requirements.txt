@@ -2,3 +2,4 @@ hypothesis
 ipytest
 pytest
 black
+duckdb

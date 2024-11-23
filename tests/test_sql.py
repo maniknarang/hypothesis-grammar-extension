@@ -13,14 +13,33 @@ sys.path.insert(
     0,
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "sql")),
 )
-from sql import setup_db, execute_query  # type: ignore
+from sql import setup_dbs, execute_query_sqlite3, execute_query_duckdb  # type: ignore
 
-# This is to set the DB up
-setup_db()
-
-@given(cfg("tests/cfgs/sql.cfg", max_depth=20))
-def test_sql_query_execution(input: str):
-    result = execute_query(input)
+@given(cfg("tests/cfgs/sql1.cfg", max_depth=20))
+@settings(deadline=1000)
+def test_sql_query_syntax(input: str):
+    """Property 1: test generated SQL query syntax in SQLite3 DB"""
+    result = execute_query_sqlite3(input)
     assert 'Error' not in str(result), f'Query failed to execute with error {str(result)}'
+
+@given(cfg("tests/cfgs/sql2.cfg", max_depth=20))
+@settings(deadline=1000)
+def test_sql_query_where_clause(input: str):
+    """Property 2: test WHERE clause and verify SQLite3 and DuckDB return the same results"""
+    result_sqlite3 = execute_query_sqlite3(input)
+    result_duckdb = execute_query_duckdb(input)
+    print('SQLite3 output:', result_sqlite3)
+    print('DuckDB output:', result_duckdb)
+    assert result_sqlite3 == result_duckdb
+
+@given(cfg("tests/cfgs/sql3.cfg", max_depth=20))
+@settings(deadline=5000)
+def test_sql_query_group_by_clause(input:str):
+    """Property 3: test GROUP BY clause and verify SQLite3 and DuckDB return the same results"""
+    result_sqlite3 = execute_query_sqlite3(input)
+    result_duckdb = execute_query_duckdb(input)
+    print('SQLite3 output:', result_sqlite3)
+    print('DuckDB output:', result_duckdb)
+    assert result_sqlite3 == result_duckdb
 
 ipytest.run("-s")
