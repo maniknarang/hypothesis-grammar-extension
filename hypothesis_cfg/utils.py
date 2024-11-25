@@ -1,4 +1,5 @@
 from enum import Enum
+from hypothesis.strategies._internal.strategies import SearchStrategy
 
 
 class Nonterminal:
@@ -119,3 +120,18 @@ class Modes(Enum):
     TERMINAL = 1
     NONTERMINAL = 2
     BACKSLASH = 3
+
+
+class CFGStrategy(SearchStrategy):
+    def __init__(
+        self, nonterminals: NonterminalCollection, depth: int, generate_string
+    ):
+        self.generate_string = generate_string
+        self.nonterminals = nonterminals
+        self.depth = depth
+
+    def __repr__(self):
+        return f"CFG(nonterminals={self.nonterminals}, depth={self.depth})"
+
+    def do_draw(self, data):
+        return data.draw(self.generate_string(self.nonterminals["S"], self.depth))

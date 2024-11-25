@@ -1,9 +1,15 @@
 from hypothesis.strategies import composite, sampled_from
-from hypothesis.strategies._internal.strategies import SearchStrategy
 from hypothesis.strategies._internal.utils import defines_strategy
 
 
-from utils import Nonterminal, NonterminalCollection, Terminal, Expansion, Modes
+from utils import (
+    CFGStrategy,
+    Nonterminal,
+    NonterminalCollection,
+    Terminal,
+    Expansion,
+    Modes,
+)
 
 
 def get_cfg_string(cfg_file_path: str) -> str:
@@ -175,18 +181,6 @@ def generate_string(draw, start_part: Nonterminal | Terminal, max_depth: int):
     return result
 
 
-class CFGStrategy(SearchStrategy):
-    def __init__(self, nonterminals: NonterminalCollection, depth: int):
-        self.nonterminals = nonterminals
-        self.depth = depth
-
-    def __repr__(self):
-        return f"CFG(nonterminals={self.nonterminals}, depth={self.depth})"
-
-    def do_draw(self, data):
-        return data.draw(generate_string(self.nonterminals["S"], self.depth))
-
-
 @defines_strategy()
 def cfg(cfg_file_path: str = "", max_depth: int | None = None):
 
@@ -236,4 +230,4 @@ def cfg(cfg_file_path: str = "", max_depth: int | None = None):
     print(f"max_depth: {depth}")
 
     print()
-    return CFGStrategy(nonterminals, depth)
+    return CFGStrategy(nonterminals, depth, generate_string)
