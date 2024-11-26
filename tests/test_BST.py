@@ -29,16 +29,47 @@ class Node:
     def add_right_child(self, child):
         self.right = child
 
+    def left_right_preorder(self):
+        return (
+            [self.value]
+            + (self.left.left_right_preorder() if self.left else [])
+            + (self.right.left_right_preorder() if self.right else [])
+        )
 
-def sum_expr_string(mathexpr: str) -> int:
-    return sum(int(num) for num in mathexpr.split("+"))
+    def right_left_postorder(self):
+        return (
+            (self.right.right_left_postorder() if self.right else [])
+            + (self.left.right_left_postorder() if self.left else [])
+            + [self.value]
+        )
 
 
-@given(cfg("tests/cfgs/bst.cfg", 10))
-def test_sum(bst_str: str):
+def process_bst_str(bst_str: str) -> Node:
     exec(bst_str, globals())  # define root: the root node of the BST
-    root = globals()["root"]
-    print(root)
+    return globals()["root"]
+
+
+# reversing the left-right preorder traversal should be equal to the right-left postorder traversal
+@given(cfg("tests/cfgs/bst.cfg", 10))
+def test_preorder_postorder(bst_str: str):
+    root = process_bst_str(bst_str)
+    assert root.left_right_preorder()[::-1] == root.right_left_postorder()
+
+
+# BST invariant holds
+@given(cfg("tests/cfgs/bst.cfg", 10))
+def test_invariant(bst_str: str):
+    root = process_bst_str(bst_str)
+
+    def _test_invariant(bst_node: Node):
+        if bst_node.left:
+            assert bst_node.left.value <= bst_node.value
+            _test_invariant(bst_node.left)
+        if bst_node.right:
+            assert bst_node.right.value >= bst_node.value
+            _test_invariant(bst_node.right)
+
+    _test_invariant(root)
 
 
 ipytest.run("-s")
