@@ -43,6 +43,15 @@ class Node:
             + [self.value]
         )
 
+    def search(self, value: int) -> bool:
+        if self.value == value:
+            return True
+        if value < self.value and self.left and self.left.search(value):
+            return True
+        if value > self.value and self.right and self.right.search(value):
+            return True
+        return False
+
 
 def process_bst_str(bst_str: str) -> Node:
     exec(bst_str, globals())  # define root: the root node of the BST
@@ -70,6 +79,14 @@ def test_invariant(bst_str: str):
             _test_invariant(bst_node.right)
 
     _test_invariant(root)
+
+
+# BST O(log n) search is correct
+@given(cfg("tests/cfgs/bst.cfg", 10))
+def test_search(bst_str: str):
+    root = process_bst_str(bst_str)
+    target = random.randint(0, 100)
+    assert root.search(target) == (target in root.left_right_preorder())
 
 
 ipytest.run("-s")
