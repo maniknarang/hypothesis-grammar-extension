@@ -85,7 +85,7 @@ def test_invariant(bst_str: str):
 @given(cfg("tests/cfgs/bst.cfg", 10))
 def test_search(bst_str: str):
     root = process_bst_str(bst_str)
-    target = random.randint(0, 100)
+    target = random.randint(-200, 200)
     assert root.search(target) == (target in root.left_right_preorder())
 
 
