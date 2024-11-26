@@ -12,7 +12,7 @@ sys.path.insert(
 from hypothesis_cfg import cfg  # type: ignore
 
 
-@given(cfg("tests/cfgs/http.cfg", max_depth=50))
+@given(cfg("tests/cfgs/httprequest.cfg", max_depth=50))
 def test_sum(http: str):
     print(http)
     assert http != http
