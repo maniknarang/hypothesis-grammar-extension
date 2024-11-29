@@ -3,3 +3,4 @@ ipytest
 pytest
 black
 duckdb
+sympy
