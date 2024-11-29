@@ -47,8 +47,8 @@ def test_http_request_format(http_request):
 @given(cfg("tests/cfgs/httprequest.cfg", max_depth=50))
 def test_http_request_format_invalid(http_request):
     for replace_string in ["GET", "POST", "PUT"]:
-        http_request_invalid = http_request.replace(replace_string, "INVALID", 1)
-    assert not is_valid_http_request(http_request_invalid)
+        http_request = http_request.replace(replace_string, "INVALID", 1)
+    assert not is_valid_http_request(http_request)
 
 
 @given(cfg("tests/cfgs/httprequest.cfg", max_depth=50))
