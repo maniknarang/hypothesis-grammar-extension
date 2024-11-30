@@ -1,7 +1,5 @@
 from hypothesis.strategies import composite, sampled_from
 from hypothesis.strategies._internal.utils import defines_strategy
-
-
 from utils import (
     CFGStrategy,
     Nonterminal,
@@ -10,6 +8,13 @@ from utils import (
     Expansion,
     Modes,
 )
+
+DEBUG = False
+
+
+def print(*args, **kwargs):
+    if DEBUG:
+        __builtins__.print(*args, **kwargs)
 
 
 def get_cfg_string(cfg_file_path: str) -> str:
