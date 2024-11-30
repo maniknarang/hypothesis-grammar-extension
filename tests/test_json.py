@@ -17,12 +17,7 @@ def fix_dup_keys_string(json_str: str):
     key_pattern = r'"([^"]+)"\s*:'
     seen_keys = {}
 
-    print(1)
-    print(2)
-    print(3)
-
     def replace_key(match):
-        print(match)
         key = match.group(1)
         if key in seen_keys:
             seen_keys[key] += 1
@@ -48,6 +43,7 @@ def contains_type(json_obj, search_type):
 @given(cfg("tests/cfgs/json.cfg", max_depth=20))
 def test_json_inverse(json_str: str):
     json_str = fix_dup_keys_string(json_str)
+    print(json_str)
     obj = json.loads(json_str)
     assert json.dumps(obj).replace(" ", "") == json_str
 
