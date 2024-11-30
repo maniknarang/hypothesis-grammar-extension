@@ -43,7 +43,6 @@ def contains_type(json_obj, search_type):
 @given(cfg("tests/cfgs/json.cfg", max_depth=20))
 def test_json_inverse(json_str: str):
     json_str = fix_dup_keys_string(json_str)
-    print(json_str)
     obj = json.loads(json_str)
     assert json.dumps(obj).replace(" ", "") == json_str
 
