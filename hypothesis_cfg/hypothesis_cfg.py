@@ -1,8 +1,13 @@
-from math import exp
-from hypothesis.strategies import composite, builds, randoms, sampled_from
-import random
-
-from utils import Nonterminal, NonterminalCollection, Terminal, Expansion, Modes
+from hypothesis.strategies import composite, sampled_from
+from hypothesis.strategies._internal.utils import defines_strategy
+from utils import (
+    CFGStrategy,
+    Nonterminal,
+    NonterminalCollection,
+    Terminal,
+    Expansion,
+    Modes,
+)
 
 DEBUG = False
 
@@ -10,9 +15,6 @@ DEBUG = False
 def print(*args, **kwargs):
     if DEBUG:
         __builtins__.print(*args, **kwargs)
-
-
-sys_random = random.SystemRandom()
 
 
 def get_cfg_string(cfg_file_path: str) -> str:
@@ -147,11 +149,8 @@ def get_min_distances(
     return unreachable_nonterminals, min_required_depth
 
 
-# @composite
-def generate_string(
-    start_part: Nonterminal | Terminal,
-    max_depth: int,
-) -> str:
+@composite
+def generate_string(draw, start_part: Nonterminal | Terminal, max_depth: int):
     """
     Recursively generates strings from a CFG defined by a NonterminalCollection.
     Limit search to strings derivable with a max depth using algorithm from class.
@@ -174,21 +173,21 @@ def generate_string(
     ]
     print(f"valid_expansions: {valid_expansions}")
 
-    # choose a random valid expansion
-    expansion = sys_random.choice(valid_expansions)
-    # expansion = draw(sampled_from(valid_expansions))
+    # choose a random valid expansion using Hypothesis
+    expansion = sampled_from(valid_expansions)
     print(f"chosen_expansion: {expansion}")
 
     # recurse on all children and concatenate the results
     result = "".join(
-        generate_string(child, max_depth - 1) for child in expansion.get_expansion()
+        draw(generate_string(start_part=child, max_depth=max_depth - 1))  # type: ignore bc composite passes in draw?
+        for child in draw(expansion).get_expansion()
     )
 
     return result
 
 
-@composite
-def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
+@defines_strategy()
+def cfg(cfg_file_path: str = "", max_depth: int | None = None):
 
     # open file
     print(f"cfg_file_path: {cfg_file_path}")
@@ -227,11 +226,13 @@ def cfg(draw, cfg_file_path: str = "", max_depth: int | None = None):
     depth = (
         max_depth
         if max_depth is not None
-        else min_required_depth * 2 if min_required_depth < Nonterminal.infinity else 10
+        else (
+            int(min_required_depth) * 2
+            if min_required_depth < Nonterminal.infinity
+            else 10
+        )
     )
     print(f"max_depth: {depth}")
-    result = generate_string(nonterminals["S"], depth)  # type: ignore
-    print(f"generated: {result}")
 
-    return result
-    # return draw(result)
+    print()
+    return CFGStrategy(nonterminals, depth, generate_string)
