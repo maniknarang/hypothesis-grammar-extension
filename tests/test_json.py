@@ -14,7 +14,7 @@ from hypothesis_cfg import cfg  # type: ignore
 
 
 def fix_dup_keys_string(json_str: str):
-    key_pattern = r'(?<!\\)"(.*?)"(?:\s*:)'
+    key_pattern = r'"([^"]+)"\s*:'
     seen_keys = {}
 
     def replace_key(match):
