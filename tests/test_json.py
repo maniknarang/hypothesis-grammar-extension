@@ -14,10 +14,15 @@ from hypothesis_cfg import cfg  # type: ignore
 
 
 def fix_dup_keys_string(json_str: str):
-    key_pattern = r'(?<!\\)"(.*?)"(?:\s*:)'
+    key_pattern = r'"([^"]+)"\s*:'
     seen_keys = {}
 
+    print(1)
+    print(2)
+    print(3)
+
     def replace_key(match):
+        print(match)
         key = match.group(1)
         if key in seen_keys:
             seen_keys[key] += 1
