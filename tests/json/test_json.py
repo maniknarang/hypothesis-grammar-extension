@@ -40,14 +40,14 @@ def contains_type(json_obj, search_type):
     return False
 
 
-@given(cfg("tests/cfgs/json.cfg", max_depth=20))
+@given(cfg("tests/json/cfgs/json.cfg", max_depth=20))
 def test_json_inverse(json_str: str):
     json_str = fix_dup_keys_string(json_str)
     obj = json.loads(json_str)
     assert json.dumps(obj).replace(" ", "") == json_str
 
 
-@given(cfg("tests/cfgs/json.cfg", max_depth=20))
+@given(cfg("tests/json/cfgs/json.cfg", max_depth=20))
 def test_json_keys_exist(json_str: str):
     json_str = fix_dup_keys_string(json_str)
     obj = json.loads(json_str)
@@ -55,7 +55,7 @@ def test_json_keys_exist(json_str: str):
         assert ('"' + key + '"') in json_str
 
 
-@given(cfg("tests/cfgs/json.cfg", max_depth=20))
+@given(cfg("tests/json/cfgs/json.cfg", max_depth=20))
 def test_json_dict_list_consistency(json_str: str):
     json_str = fix_dup_keys_string(json_str)
     assert ("[" in json_str) == contains_type(json.loads(json_str), list)

@@ -8,7 +8,7 @@ import random
 
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hypothesis_cfg")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "hypothesis_cfg")),
 )
 
 from hypothesis_cfg import cfg  # type: ignore
@@ -63,14 +63,14 @@ def process_bst_str(bst_str: str) -> BSTNode:
 
 
 # reversing the left-right preorder traversal should be equal to the right-left postorder traversal
-@given(cfg("tests/cfgs/bst.cfg", 10))
+@given(cfg("tests/binary_tree/cfgs/bst.cfg", 10))
 def test_preorder_postorder(bst_str: str):
     root = process_bst_str(bst_str)
     assert root.left_right_preorder()[::-1] == root.right_left_postorder()
 
 
 # BST invariant holds
-@given(cfg("tests/cfgs/bst.cfg", 10))
+@given(cfg("tests/binary_tree/cfgs/bst.cfg", 10))
 def test_invariant(bst_str: str):
     root = process_bst_str(bst_str)
 
@@ -86,7 +86,7 @@ def test_invariant(bst_str: str):
 
 
 # BST O(log n) search is correct
-@given(cfg("tests/cfgs/bst.cfg", 10))
+@given(cfg("tests/binary_tree/cfgs/bst.cfg", 10))
 def test_search(bst_str: str):
     root = process_bst_str(bst_str)
     target = random.randint(-200, 200)
