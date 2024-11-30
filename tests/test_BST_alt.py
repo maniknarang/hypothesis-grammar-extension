@@ -14,22 +14,20 @@ sys.path.insert(
 from hypothesis_cfg import cfg  # type: ignore
 
 
-class BSTNode:
-    def __init__(self, left, right):
-        self.value = None
-        self.left = left
-        self.right = right
+class Node:
+    def __init__(self, value: int):
+        self.value = value
+        self.left = None
+        self.right = None
 
     def __repr__(self):
         return f"Node({self.value}, {self.left}, {self.right})"
 
-    def initialize_value(self, lower_bound, upper_bound):
-        self.value = random.randint(lower_bound, upper_bound)
-        if self.left:
-            self.left.initialize_value(lower_bound, self.value)
-        if self.right:
-            self.right.initialize_value(self.value, upper_bound)
-        return self
+    def add_left_child(self, child):
+        self.left = child
+
+    def add_right_child(self, child):
+        self.right = child
 
     def left_right_preorder(self):
         return (
@@ -48,33 +46,33 @@ class BSTNode:
     def search(self, value: int) -> bool:
         if self.value == value:
             return True
-        if value < self.value and self.left and self.left.search(value):  # type: ignore
+        if value < self.value and self.left and self.left.search(value):
             return True
-        if value > self.value and self.right and self.right.search(value):  # type: ignore
+        if value > self.value and self.right and self.right.search(value):
             return True
         return False
 
 
-def process_bst_str(bst_str: str) -> BSTNode:
-    unitialized_bst_root = eval(bst_str)
-    initialized_bst_root = unitialized_bst_root.initialize_value(-100, 100)
-    # print(initialized_bst_root)
-    return initialized_bst_root
+def process_bst_str(bst_str: str) -> Node:
+    exec(bst_str, globals())  # define root: the root node of the BST
+    root_node = globals()["root"]
+    # print(f"root_node: {root_node}")
+    return root_node
 
 
 # reversing the left-right preorder traversal should be equal to the right-left postorder traversal
-@given(cfg("tests/cfgs/bst.cfg", 10))
+@given(cfg("tests/cfgs/bst_alt.cfg", 10))
 def test_preorder_postorder(bst_str: str):
     root = process_bst_str(bst_str)
     assert root.left_right_preorder()[::-1] == root.right_left_postorder()
 
 
 # BST invariant holds
-@given(cfg("tests/cfgs/bst.cfg", 10))
+@given(cfg("tests/cfgs/bst_alt.cfg", 10))
 def test_invariant(bst_str: str):
     root = process_bst_str(bst_str)
 
-    def _test_invariant(bst_node: BSTNode):
+    def _test_invariant(bst_node: Node):
         if bst_node.left:
             assert bst_node.left.value <= bst_node.value
             _test_invariant(bst_node.left)
@@ -86,7 +84,7 @@ def test_invariant(bst_str: str):
 
 
 # BST O(log n) search is correct
-@given(cfg("tests/cfgs/bst.cfg", 10))
+@given(cfg("tests/cfgs/bst_alt.cfg", 10))
 def test_search(bst_str: str):
     root = process_bst_str(bst_str)
     target = random.randint(-200, 200)

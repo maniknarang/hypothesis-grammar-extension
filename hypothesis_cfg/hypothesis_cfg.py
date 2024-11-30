@@ -4,7 +4,16 @@ import random
 
 from utils import Nonterminal, NonterminalCollection, Terminal, Expansion, Modes
 
+DEBUG = False
+
+
+def print(*args, **kwargs):
+    if DEBUG:
+        __builtins__.print(*args, **kwargs)
+
+
 sys_random = random.SystemRandom()
+
 
 def get_cfg_string(cfg_file_path: str) -> str:
     try:
