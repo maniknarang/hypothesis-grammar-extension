@@ -8,7 +8,7 @@ import re
 
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hypothesis_cfg")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "hypothesis_cfg")),
 )
 
 from hypothesis_cfg import cfg  # type: ignore
@@ -39,19 +39,19 @@ def is_valid_http_request(request):
     return True
 
 
-@given(cfg("tests/cfgs/httprequest.cfg", max_depth=50))
+@given(cfg("tests/http/cfgs/httprequest.cfg", max_depth=50))
 def test_http_request_format(http_request):
     assert is_valid_http_request(http_request)
 
 
-@given(cfg("tests/cfgs/httprequest.cfg", max_depth=50))
+@given(cfg("tests/http/cfgs/httprequest.cfg", max_depth=50))
 def test_http_request_format_invalid(http_request):
     for replace_string in ["GET", "POST", "PUT"]:
         http_request = http_request.replace(replace_string, "INVALID", 1)
     assert not is_valid_http_request(http_request)
 
 
-@given(cfg("tests/cfgs/httprequest.cfg", max_depth=50))
+@given(cfg("tests/http/cfgs/httprequest.cfg", max_depth=50))
 def test_http_request_mandatory_headers(http_request):
     # split request into lines
     lines = http_request.split("\r\n")
@@ -75,7 +75,7 @@ def test_http_request_mandatory_headers(http_request):
     ), "Only 'Host' is required in HTTP/1.0 and HTTP/1.1 requests"
 
 
-@given(cfg("tests/cfgs/httprequest.cfg", max_depth=50))
+@given(cfg("tests/http/cfgs/httprequest.cfg", max_depth=50))
 def test_http_request_valid_methods_and_versions(http_request):
     # split request into lines
     lines = http_request.split("\r\n")

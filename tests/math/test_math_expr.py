@@ -6,7 +6,7 @@ import os
 
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hypothesis_cfg")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "hypothesis_cfg")),
 )
 
 from hypothesis_cfg import cfg  # type: ignore
@@ -20,8 +20,8 @@ def simplify_math_expr(math_expr: str) -> str:
 
 
 @given(
-    cfg("tests/cfgs/math_expr.cfg", max_depth=20),
-    cfg("tests/cfgs/math_expr.cfg", max_depth=20),
+    cfg("tests/math/cfgs/math_expr.cfg", max_depth=20),
+    cfg("tests/math/cfgs/math_expr.cfg", max_depth=20),
 )
 @settings(deadline=None)
 def test_simplify_communative(math_expr: str, math_expr2: str):
@@ -33,7 +33,7 @@ def test_simplify_communative(math_expr: str, math_expr2: str):
     ) == simplify_math_expr("(" + math_expr2 + ")*(" + math_expr + ")")
 
 
-@given(cfg("tests/cfgs/math_expr.cfg", max_depth=20))
+@given(cfg("tests/math/cfgs/math_expr.cfg", max_depth=20))
 @settings(deadline=None)
 def test_simplify_identity(math_expr: str):
     simplified = simplify_math_expr(math_expr)
@@ -41,7 +41,7 @@ def test_simplify_identity(math_expr: str):
     assert simplify_math_expr("(" + math_expr + ")*1") == simplified
 
 
-@given(cfg("tests/cfgs/math_expr.cfg", max_depth=20))
+@given(cfg("tests/math/cfgs/math_expr.cfg", max_depth=20))
 @settings(deadline=None)
 def test_simplify_subtraction(math_expr: str):
     assert simplify_math_expr(math_expr + "-(" + math_expr + ")") == "0"
