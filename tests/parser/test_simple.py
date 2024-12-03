@@ -18,6 +18,7 @@ def sum_expr_string(mathexpr: str) -> int:
 
 @given(cfg("tests/parser/cfgs/simple.cfg"))
 def test_sum(mathexpr: str):
+    print(mathexpr)
     assert sum_expr_string(mathexpr) == eval(mathexpr)
 
 
