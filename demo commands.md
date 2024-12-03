@@ -3,13 +3,6 @@
 pytest just_hypothesis.py -s
 ```
 
-# Extension Usage
-```
-pytest tests/parser/test_simple.py -s
-```
-```
-pytest tests/parser/test_recursive.py -s
-```
 
 # Parser Internals
 ***Set DEBUG=True***
