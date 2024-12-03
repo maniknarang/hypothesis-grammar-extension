@@ -40,6 +40,8 @@ input = "SELECT * from table1 GROUP BY column1;"
 # Binary Trees
 ```
 pytest tests/binary_tree/test_BT.py -s
+```
+```
 pytest tests/binary_tree/test_BST.py -s
 ```
 
