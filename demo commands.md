@@ -37,18 +37,6 @@ input = "SELECT * from table1 GROUP BY column1;"
 ```
 
 
-# JSON
-...
-
-
-# Math Expressions
-...
-
-
-# HTTP
-...
-
-
 # Binary Trees
 ```
 pytest tests/binary_tree/test_BT.py -s
