@@ -9,7 +9,7 @@ from utils import (
     Modes,
 )
 
-DEBUG = True
+DEBUG = False
 
 
 def debug_print(*args, **kwargs):
