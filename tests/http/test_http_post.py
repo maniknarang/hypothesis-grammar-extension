@@ -14,6 +14,8 @@ from hypothesis_cfg import cfg  # type: ignore
 
 
 def is_valid_post_request(request):
+    print(request)
+
     # split request into lines
     lines = request.split("\r\n")
 
@@ -69,6 +71,7 @@ def test_post_request_mandatory_headers(post_request):
     # get headers
     headers = lines[1:]
     headers_dict = {}
+    print(headers)
     for header in headers:
         if header == "":
             break
@@ -95,6 +98,7 @@ def test_post_request_valid_versions(post_request):
 
     # validate version
     version = request_line.rpartition(" ")[2]
+    print(version)
     valid_versions = {"HTTP/1.0", "HTTP/1.1"}
     assert version in valid_versions, f"Invalid HTTP version: {version}"
 

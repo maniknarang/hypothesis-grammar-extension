@@ -15,6 +15,8 @@ from hypothesis_cfg import cfg  # type: ignore
 
 
 def is_valid_http_request(request):
+    print(request)
+
     # split request into lines
     lines = request.split("\r\n")
 
