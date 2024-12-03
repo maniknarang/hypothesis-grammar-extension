@@ -60,7 +60,7 @@ def test_http_request_mandatory_headers(http_request):
     if not is_valid_http_request(http_request):
         return
 
-    # extract headers
+    # get headers
     headers = lines[1:]
     headers_dict = {}
     for header in headers:
@@ -84,7 +84,7 @@ def test_http_request_valid_methods_and_versions(http_request):
     if not is_valid_http_request(http_request):
         return
 
-    # extract request line
+    # get request line
     request_line = lines[0]
 
     # validate method and version
