@@ -108,8 +108,7 @@ class NonterminalCollection:
         return self._nonterminals[nonterminal]
 
     def __repr__(self) -> str:
-
-        return str(self._nonterminals)
+        return str(list(self._nonterminals.keys()))
 
     def __len__(self) -> int:
         return len(self._nonterminals)

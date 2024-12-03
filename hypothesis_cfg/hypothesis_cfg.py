@@ -12,9 +12,9 @@ from utils import (
 DEBUG = False
 
 
-def print(*args, **kwargs):
+def debug_print(*args, **kwargs):
     if DEBUG:
-        __builtins__.print(*args, **kwargs)
+        print(*args, **kwargs)
 
 
 def get_cfg_string(cfg_file_path: str) -> str:
@@ -23,7 +23,7 @@ def get_cfg_string(cfg_file_path: str) -> str:
             cfg = f.read()
         return cfg
     except FileNotFoundError:
-        print(f"File not found: {cfg_file_path}")
+        debug_print(f"File not found: {cfg_file_path}")
         return ""
 
 
@@ -158,11 +158,11 @@ def generate_string(draw, start_part: Nonterminal | Terminal, max_depth: int):
 
     # base case: terminal node - return the terminal
     if isinstance(start_part, Terminal):
-        print("terminal node: ", start_part)
+        debug_print("terminal node: ", start_part)
         return start_part.get_terminal()
 
     # recursive case: nonterminal node - get a list of all expansions
-    print("next nonterminal node: ", start_part)
+    debug_print("next nonterminal node: ", start_part)
     potential_expansions: list[Expansion] = start_part.get_expansions()
 
     # filter out expansions that are too deep
@@ -171,11 +171,11 @@ def generate_string(draw, start_part: Nonterminal | Terminal, max_depth: int):
         for expansion in potential_expansions
         if expansion.get_min_distance_to_terminal() <= max_depth
     ]
-    print(f"valid_expansions: {valid_expansions}")
+    debug_print(f"valid_expansions: {valid_expansions}")
 
     # choose a random valid expansion using Hypothesis
     expansion = sampled_from(valid_expansions)
-    print(f"chosen_expansion: {expansion}")
+    debug_print(f"chosen_expansion: {expansion}")
 
     # recurse on all children and concatenate the results
     result = "".join(
@@ -190,39 +190,39 @@ def generate_string(draw, start_part: Nonterminal | Terminal, max_depth: int):
 def cfg(cfg_file_path: str = "", max_depth: int | None = None):
 
     # open file
-    print(f"cfg_file_path: {cfg_file_path}")
+    debug_print(f"cfg_file_path: {cfg_file_path}")
     cfg_string = get_cfg_string(cfg_file_path)
-    print(f"cfg_string:\n{cfg_string}")
+    debug_print(f"cfg_string:\n{cfg_string}")
     if cfg_string == "":
         return ""
 
     # parse file and get grammar in python classes
-    print()
+    debug_print()
     nonterminals = parse_cfg(cfg_string)
-    print(f"nonterminals: {nonterminals}")
+    debug_print(f"nonterminals: {nonterminals}")
     for nonterminal in nonterminals:
-        print(f"{nonterminal} expansions: {nonterminal.get_expansions()}")
+        debug_print(f"{nonterminal} expansions: {nonterminal.get_expansions()}")
 
     # graph exploration to label min distances to terminals
-    print()
+    debug_print()
     unreachable_nonterminals, min_required_depth = get_min_distances(nonterminals)
-    print(f"unreachable_nonterminals: {unreachable_nonterminals}")
+    debug_print(f"unreachable_nonterminals: {unreachable_nonterminals}")
     for nonterminal in nonterminals:
-        print(
+        debug_print(
             f"{nonterminal} min_distance_to_terminal: {nonterminal.get_min_distance_to_terminal()}"
         )
     if unreachable_nonterminals:
-        print(
+        debug_print(
             "WARNING: There are unreachable nonterminals:",
             [nonterminal for nonterminal in unreachable_nonterminals],
         )
     if max_depth is not None and max_depth < min_required_depth:
-        print(
+        debug_print(
             f"WARNING: max_depth ({max_depth}) is too low. Minimum required depth to reach a terminal is {min_required_depth}."
         )
 
     # generate random string from grammar w/ max depths
-    print()
+    debug_print()
     depth = (
         max_depth
         if max_depth is not None
@@ -232,7 +232,7 @@ def cfg(cfg_file_path: str = "", max_depth: int | None = None):
             else 10
         )
     )
-    print(f"max_depth: {depth}")
+    debug_print(f"max_depth: {depth}")
 
-    print()
+    debug_print()
     return CFGStrategy(nonterminals, depth, generate_string)

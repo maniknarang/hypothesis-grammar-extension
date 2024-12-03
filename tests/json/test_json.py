@@ -7,7 +7,7 @@ import os
 
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hypothesis_cfg")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "hypothesis_cfg")),
 )
 
 from hypothesis_cfg import cfg  # type: ignore
@@ -42,6 +42,7 @@ def contains_type(json_obj, search_type):
 
 @given(cfg("tests/json/cfgs/json.cfg", max_depth=20))
 def test_json_inverse(json_str: str):
+    print('GENERATED JSON: ', json_str)
     json_str = fix_dup_keys_string(json_str)
     obj = json.loads(json_str)
     assert json.dumps(obj).replace(" ", "") == json_str
