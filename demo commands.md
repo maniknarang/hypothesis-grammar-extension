@@ -20,6 +20,22 @@ pytest tests/parser/test_simple.py -s
 
 # SQL
 ...
+```
+pytest -sk test_sql_query_syntax
+```
+
+```
+pytest -sk test_sql_query_where_clause
+```
+
+```
+pytest -sk test_sql_query_group_by_clause
+```
+
+***Negative GROUP BY test:***
+```
+input = "SELECT * from table1 GROUP BY column1;"
+```
 
 
 # JSON
