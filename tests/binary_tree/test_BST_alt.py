@@ -8,20 +8,17 @@ import random
 
 sys.path.insert(
     0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hypothesis_cfg")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "hypothesis_cfg")),
 )
 
 from hypothesis_cfg import cfg  # type: ignore
 
 
-class Node:
+class BSTNode:
     def __init__(self, value: int):
         self.value = value
         self.left = None
         self.right = None
-
-    def __repr__(self):
-        return f"Node({self.value}, {self.left}, {self.right})"
 
     def add_left_child(self, child):
         self.left = child
@@ -29,34 +26,42 @@ class Node:
     def add_right_child(self, child):
         self.right = child
 
-    def left_right_preorder(self):
-        return (
-            [self.value]
-            + (self.left.left_right_preorder() if self.left else [])
-            + (self.right.left_right_preorder() if self.right else [])
-        )
 
-    def right_left_postorder(self):
-        return (
-            (self.right.right_left_postorder() if self.right else [])
-            + (self.left.right_left_postorder() if self.left else [])
-            + [self.value]
-        )
-
-    def search(self, value: int) -> bool:
-        if self.value == value:
-            return True
-        if value < self.value and self.left and self.left.search(value):
-            return True
-        if value > self.value and self.right and self.right.search(value):
-            return True
-        return False
+def left_right_preorder(self):
+    return (
+        [self.value]
+        + (self.left.left_right_preorder() if self.left else [])
+        + (self.right.left_right_preorder() if self.right else [])
+    )
 
 
-def process_bst_str(bst_str: str) -> Node:
+def right_left_postorder(self):
+    return (
+        (self.right.right_left_postorder() if self.right else [])
+        + (self.left.right_left_postorder() if self.left else [])
+        + [self.value]
+    )
+
+
+def search(self, value: int) -> bool:
+    if self.value == value:
+        return True
+    if value < self.value and self.left and self.left.search(value):
+        return True
+    if value > self.value and self.right and self.right.search(value):
+        return True
+    return False
+
+
+BSTNode.left_right_preorder = left_right_preorder  # type: ignore
+BSTNode.right_left_postorder = right_left_postorder  # type: ignore
+BSTNode.search = search  # type: ignore
+
+
+def process_bst_str(bst_str: str) -> BSTNode:
+    print(bst_str)
     exec(bst_str, globals())  # define root: the root node of the BST
     root_node = globals()["root"]
-    # print(f"root_node: {root_node}")
     return root_node
 
 
@@ -64,7 +69,7 @@ def process_bst_str(bst_str: str) -> Node:
 @given(cfg("tests/binary_tree/cfgs/bst_alt.cfg", 10))
 def test_preorder_postorder(bst_str: str):
     root = process_bst_str(bst_str)
-    assert root.left_right_preorder()[::-1] == root.right_left_postorder()
+    assert root.left_right_preorder()[::-1] == root.right_left_postorder()  # type: ignore
 
 
 # BST invariant holds
@@ -72,7 +77,7 @@ def test_preorder_postorder(bst_str: str):
 def test_invariant(bst_str: str):
     root = process_bst_str(bst_str)
 
-    def _test_invariant(bst_node: Node):
+    def _test_invariant(bst_node: BSTNode):
         if bst_node.left:
             assert bst_node.left.value <= bst_node.value
             _test_invariant(bst_node.left)
@@ -88,7 +93,7 @@ def test_invariant(bst_str: str):
 def test_search(bst_str: str):
     root = process_bst_str(bst_str)
     target = random.randint(-200, 200)
-    assert root.search(target) == (target in root.left_right_preorder())
+    assert root.search(target) == (target in root.left_right_preorder())  # type: ignore
 
 
 ipytest.run("-s")
