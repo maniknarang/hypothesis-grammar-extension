@@ -19,7 +19,6 @@ pytest tests/parser/test_simple.py -s
 ***Set DEBUG=False***
 
 # SQL
-...
 ```
 pytest -sk test_sql_query_syntax
 ```
