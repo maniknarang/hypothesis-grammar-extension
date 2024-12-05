@@ -2,6 +2,7 @@ from logging import root
 import math
 import ipytest
 from hypothesis import given
+from hypothesis.strategies import integers
 import sys
 import os
 import random
@@ -67,10 +68,9 @@ def test_preorder_postorder(bt_str: str):
 
 
 # "more efficient" search is still correct
-@given(cfg("tests/binary_tree/cfgs/bt.cfg", 10))
-def test_search(bt_str: str):
+@given(cfg("tests/binary_tree/cfgs/bt.cfg", 10), integers(-200, 200))
+def test_search(bt_str: str, target: int):
     root = process_bt_str(bt_str)
-    target = random.randint(-200, 200)
     assert root.search(target) == (target in root.left_right_preorder())  # type: ignore
 
 
