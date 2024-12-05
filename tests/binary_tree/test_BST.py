@@ -2,6 +2,7 @@ from logging import root
 import math
 import ipytest
 from hypothesis import given
+from hypothesis.strategies import integers
 import sys
 import os
 import random
@@ -91,10 +92,9 @@ def test_invariant(bst_str: str):
 
 
 # BST O(log n) search is correct
-@given(cfg("tests/binary_tree/cfgs/bst.cfg", 10))
-def test_search(bst_str: str):
+@given(cfg("tests/binary_tree/cfgs/bst.cfg", 10), integers(-200, 200))
+def test_search(bst_str: str, target: int):
     root = process_bst_str(bst_str)
-    target = random.randint(-200, 200)
     assert root.search(target) == (target in root.left_right_preorder())  # type: ignore
 
 
