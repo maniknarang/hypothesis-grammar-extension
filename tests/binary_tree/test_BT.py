@@ -2,7 +2,7 @@ from logging import root
 import math
 import ipytest
 from hypothesis import given
-from hypothesis.strategies import integers
+from hypothesis.strategies import integers, from_regex
 import sys
 import os
 import random
@@ -60,16 +60,47 @@ def process_bt_str(bst_str: str) -> Node:
     return eval(bst_str)  # define root: the root node of the BT
 
 
+"CFG VERSION"
+
+
 # reversing the left-right preorder traversal should be equal to the right-left postorder traversal
 @given(cfg("tests/binary_tree/cfgs/bt.cfg", 10))
-def test_preorder_postorder(bt_str: str):
+def test_preorder_postorder_cfg(bt_str: str):
     root = process_bt_str(bt_str)
     assert root.left_right_preorder()[::-1] == root.right_left_postorder()  # type: ignore
 
 
 # "more efficient" search is still correct
 @given(cfg("tests/binary_tree/cfgs/bt.cfg", 10), integers(-200, 200))
-def test_search(bt_str: str, target: int):
+def test_search_cfg(bt_str: str, target: int):
+    root = process_bt_str(bt_str)
+    assert root.search(target) == (target in root.left_right_preorder())  # type: ignore
+
+
+"REGEX VERSION"
+
+
+# reversing the left-right preorder traversal should be equal to the right-left postorder traversal
+@given(
+    from_regex(
+        r"Node\([0-9]+, (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\)), (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\))\)",
+        fullmatch=True,
+    )
+)
+def test_preorder_postorder_regex(bt_str: str):
+    root = process_bt_str(bt_str)
+    assert root.left_right_preorder()[::-1] == root.right_left_postorder()  # type: ignore
+
+
+# "more efficient" search is still correct
+@given(
+    from_regex(
+        r"Node\([0-9]+, (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\)), (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\))\)",
+        fullmatch=True,
+    ),
+    integers(-200, 200),
+)
+def test_search_regex(bt_str: str, target: int):
     root = process_bt_str(bt_str)
     assert root.search(target) == (target in root.left_right_preorder())  # type: ignore
 
