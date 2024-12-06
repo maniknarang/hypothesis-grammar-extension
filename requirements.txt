@@ -4,3 +4,4 @@ pytest
 black
 duckdb
 sympy
+coverage

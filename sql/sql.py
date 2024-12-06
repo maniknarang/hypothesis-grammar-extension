@@ -57,5 +57,9 @@ def execute_query_duckdb(query):
     finally:
         connection.close()
 
+def del_dbs():
+    os.remove(SQLITE3_DB_PATH)
+    os.remove(DUCKDB_PATH)
+
 if __name__ == "__main__":
     setup_dbs()
