@@ -31,19 +31,23 @@ class BSTNode:
 
 
 def left_right_preorder(self):
-    return (
-        [self.value]
-        + (self.left.left_right_preorder() if self.left else [])
-        + (self.right.left_right_preorder() if self.right else [])
-    )
+    left = []
+    right = []
+    if self.left:
+        left = self.left.left_right_preorder()
+    if self.right:
+        right = self.right.left_right_preorder()
+    return [self.value] + left + right
 
 
 def right_left_postorder(self):
-    return (
-        (self.right.right_left_postorder() if self.right else [])
-        + (self.left.right_left_postorder() if self.left else [])
-        + [self.value]
-    )
+    right = []
+    left = []
+    if self.right:
+        right = self.right.right_left_postorder()
+    if self.left:
+        left = self.left.right_left_postorder()
+    return right + left + [self.value]
 
 
 def search(self, value: int) -> bool:

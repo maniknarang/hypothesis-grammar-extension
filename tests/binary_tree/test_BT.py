@@ -7,8 +7,6 @@ import sys
 import os
 import random
 
-from sympy import N
-
 sys.path.insert(
     0,
     os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "hypothesis_cfg")),
