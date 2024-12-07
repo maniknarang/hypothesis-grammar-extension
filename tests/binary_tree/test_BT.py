@@ -83,7 +83,7 @@ def test_search_cfg(bt_str: str, target: int):
 # reversing the left-right preorder traversal should be equal to the right-left postorder traversal
 @given(
     from_regex(
-        r"Node\([0-9]+, (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\)), (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\))\)",
+        r"Node\( [1-9][0-9]* , ((None)|(Node\( [1-9][0-9]* , None, None \))) , ((None)|(Node\( [1-9][0-9]* , None, None \))) \)",
         fullmatch=True,
     )
 )
@@ -95,7 +95,7 @@ def test_preorder_postorder_regex(bt_str: str):
 # "more efficient" search is still correct
 @given(
     from_regex(
-        r"Node\([0-9]+, (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\)), (None|Node\([0-9]+, (None|Node\([0-9]+, None, None\)), (None|Node\([0-9]+, None, None\))\))\)",
+        r"Node\( [1-9][0-9]* , ((None)|(Node\( [1-9][0-9]* , None, None \))) , ((None)|(Node\( [1-9][0-9]* , None, None \))) \)",
         fullmatch=True,
     ),
     integers(-200, 200),
