@@ -29,6 +29,9 @@ class BSTNode:
             self.right.initialize_value(self.value, upper_bound)
         return self
 
+    def __repr__(self) -> str:
+        return f"BSTNode({self.value}, {self.left}, {self.right})"
+
 
 def left_right_preorder(self):
     left = []
@@ -66,9 +69,10 @@ BSTNode.search = search  # type: ignore
 
 
 def process_bst_str(bst_str: str) -> BSTNode:
-    print(bst_str)
+    # print(bst_str)
     unitialized_bst_root = eval(bst_str)
     initialized_bst_root = unitialized_bst_root.initialize_value(-100, 100)
+    print(initialized_bst_root)
     return initialized_bst_root
 
 
