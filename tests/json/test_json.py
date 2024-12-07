@@ -2,6 +2,7 @@ import ipytest
 import re
 import json
 from hypothesis import given, settings
+from hypothesis import strategies as st
 import sys
 import os
 
@@ -12,6 +13,7 @@ sys.path.insert(
 
 from hypothesis_cfg import cfg  # type: ignore
 
+regex = False
 
 def fix_dup_keys_string(json_str: str):
     key_pattern = r'"([^"]+)"\s*:'
@@ -39,24 +41,24 @@ def contains_type(json_obj, search_type):
                 return True
     return False
 
+json_regex = r'^\{\"([abc]+)\"\:\"([abc]+)\"\}$'
+json_strategy = st.from_regex(json_regex, fullmatch=True)
 
-@given(cfg("tests/json/cfgs/json.cfg", max_depth=20))
+@given(json_str=json_strategy if regex else cfg("tests/json/cfgs/json.cfg", max_depth=20))
 def test_json_inverse(json_str: str):
     print('GENERATED JSON: ', json_str)
     json_str = fix_dup_keys_string(json_str)
     obj = json.loads(json_str)
     assert json.dumps(obj).replace(" ", "") == json_str
 
-
-@given(cfg("tests/json/cfgs/json.cfg", max_depth=20))
+@given(json_str=json_strategy if regex else cfg("tests/json/cfgs/json.cfg", max_depth=20))
 def test_json_keys_exist(json_str: str):
     json_str = fix_dup_keys_string(json_str)
     obj = json.loads(json_str)
     for key in obj.keys():
         assert ('"' + key + '"') in json_str
 
-
-@given(cfg("tests/json/cfgs/json.cfg", max_depth=20))
+@given(json_str=json_strategy if regex else cfg("tests/json/cfgs/json.cfg", max_depth=20))
 def test_json_dict_list_consistency(json_str: str):
     json_str = fix_dup_keys_string(json_str)
     assert ("[" in json_str) == contains_type(json.loads(json_str), list)
