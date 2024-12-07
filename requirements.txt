@@ -5,3 +5,4 @@ black
 duckdb
 sympy
 coverage
+pytest-cov

@@ -38,8 +38,7 @@ def execute_query_sqlite3(query):
     connection = sqlite3.connect(SQLITE3_DB_PATH)
     cursor = connection.cursor()
     try:
-        cursor.execute(query)
-        results = cursor.fetchall()
+        results = cursor.execute(query).fetchall()
         return results
     except sqlite3.Error as e:
         return f'Error: {e}'
