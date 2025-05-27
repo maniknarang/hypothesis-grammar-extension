@@ -36,7 +36,7 @@ jobs:
         sudo chmod +x /usr/local/bin/antlr4
         
         echo "Verifying ANTLR4 installation..."
-        antlr4 -version
+        antlr4
 
     - name: Set up Python
       uses: actions/setup-python@v5
