@@ -71,7 +71,7 @@ class TestJson(unittest.TestCase):
             assert ('"' + key + '"') in json_str
 
     @given(sample_strategy)
-    def test_json_dict_list_consistency(self, json_str):
+    def test_json_type_consistency(self, json_str):
         print('Generated JSON: ', json_str)
         json_str = fix_dup_keys_string(json_str)
         assert ("[" in json_str) == contains_type(json.loads(json_str), list)

@@ -79,10 +79,12 @@ def g4_to_cfg(input):
         # 1. If the rule has an EOF, strip it out
         # 2. Wrap nonterminals in arrow brackets
         # 3. Put terminals in between single quotes
+        # 4. Put multiline rules into single lines
         rhs = re.sub(r'\s*EOF', '', rhs)
         rhs = re.sub(r'([a-zA-Z_][a-zA-Z0-9_]*)', r'<\1>', rhs)
         rhs = re.sub(r'<([a-zA-Z_])>', r'\1', rhs)
         rhs = re.sub(r"'<([^<>]+)>'", r"'\1'", rhs)
+        rhs = re.sub(r'\s+', ' ', rhs)
 
         output.append(f'{lhs} := {rhs}\n')
 
