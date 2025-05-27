@@ -1,4 +1,4 @@
-hypothesis
+hypothesis==6.121.0
 ipytest
 pytest
 black
@@ -6,5 +6,5 @@ duckdb
 sympy
 coverage
 pytest-cov
-antlr4-tools
-grammarinator
+antlr4-tools==0.2.1
+grammarinator==23.7
