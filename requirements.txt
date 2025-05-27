@@ -6,3 +6,5 @@ duckdb
 sympy
 coverage
 pytest-cov
+antlr4-tools
+grammarinator
