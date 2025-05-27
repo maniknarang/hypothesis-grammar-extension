@@ -27,7 +27,7 @@ jobs:
     - name: Download and set up ANTLR4 tool
       run: |
         echo "Downloading ANTLR4 complete JAR..."
-        wget https://www.antlr.org/download/antlr-4.13.1-complete.jar -O "$GITHUB_WORKSPACE/antlr4-complete.jar"
+        wget https://www.antlr.org/download/antlr-4.13.2-complete.jar -O "$GITHUB_WORKSPACE/antlr4-complete.jar"
 
         echo "Creating 'antlr4' command script..."
         echo 'java -jar "$GITHUB_WORKSPACE/antlr4-complete.jar" "$@"' | sudo tee /usr/local/bin/antlr4
@@ -49,12 +49,6 @@ jobs:
         python -m pip install --upgrade pip
         echo "Installing requirements from requirements.txt..."
         pip install -r requirements.txt
-
-    - name: Run Black formatter check
-      run: |
-        echo "Running Black formatter check..."
-        black --check .
-      continue-on-error: true
 
     - name: Run Pytest with Coverage
       run: |
