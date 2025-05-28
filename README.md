@@ -1,7 +1,9 @@
 ![Unit tests](https://github.com/anlhu/Hypothesis-Grammar-Extension/actions/workflows/test.yml/badge.svg)
 ## Hypothesis Grammar Extension
 
-This project aims to extend property-based testing in Hypothesis by integrating grammar-based input generation. The goal is to create random inputs for functions using grammars (such as regular expressions or Context-Free Grammars), which will help refine input generation to match the expected structure. The extension will provide customizable grammar definitions for common input types (e.g., emails, phone numbers), allowing users to specify their own grammars for input generation. A reach goal is to enable customizable search strategies for grammar-based inputs.
+This project aims to extend property-based testing in Hypothesis by integrating grammar-based input generation. The goal is to create random inputs for functions using grammars (such as regular expressions or Context-Free Grammars), which will help refine input generation to match the expected structure. The extension will provide customizable grammar definitions for common input types (e.g., emails, phone numbers), allowing users to specify their own grammars for input generation. This tool takes in grammars of .cfg or ANTLR .g4 format (examples under `tests/` and `converter/tests/`).
+
+Capstone project/CS230 course project advised by Professor Miryung Kim and Ben Limpanukorn. Project worked on by Andrew Hu, Garrick Su, William Santosa and Manik Narang.
 
 ## Running the devcontainer
 Install the VS Code [Dev Container](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension. It is recommended that you install [Docker](https://docs.docker.com/desktop/), but it only requires the [Docker Engine](https://docs.docker.com/engine/install/) to be running to launch the devcontainer.
